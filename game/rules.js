@@ -1,3 +1,5 @@
+import { cardValidityObject } from "./cardValidityObject.js";
+
 export const shuffleDeck = (gameState) => {
     let deck = gameState.pullDeck.slice();
 
@@ -24,4 +26,35 @@ export const dealHands = (gameState) => {
 
     return {...gameState, players: players, pullDeck: pullDeck};
 };
+
+export const playcard = (gameState, playerId, card) => {
+    if(!isPlayerTurn(gameState.currentPlayerId, playerId)) return
+    
+    if(!isTheCardValid(gameState.playDeck, card)) return
+    
+    let players = gameState.players.slice();
+    let playDeck = gameState.playDeck.slice();
+
+    let player = players.find(player => player.id === playerId);
+    player.hand = player.hand.filter(cardInHand => cardInHand !== card);
+
+    playDeck.push(card);
+
+    let nextPlayerId = getNextPlayerId(gameState, playerId);
+    return {...gameState, players: players, playDeck: playDeck, currentPlayerId: nextPlayerId};
+}
+
+const isPlayerTurn = (currentPlayerId, playerId) => {
+    return currentPlayerId === playerId;
+}
+
+const isTheCardValid = (playDeck, card) => {
+    return cardValidityObject[card].includes(playDeck[playDeck.length - 1]) || playDeck.length === 0;
+}
+
+const getNextPlayerId = (gameState, playerId) => {
+    let currentIndex = gameState.players.findIndex(player => player.id === playerId);
+    let nextIndex = (currentIndex + 1) % gameState.players.length;
+    return gameState.players[nextIndex].id;
+}
 

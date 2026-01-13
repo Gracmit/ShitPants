@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { shuffleDeck, dealHands } from '../game/rules.js';
+import { shuffleDeck, dealHands, playcard } from '../game/rules.js';
 
 describe('shuffleDeck', () => {
   test('should shuffle the deck without changing its length or elements', () => {
@@ -91,6 +91,100 @@ describe('dealHands', () => {
     };
     const originalGameState = mockGameState;
     dealHands(mockGameState);
+    expect(mockGameState).toEqual(originalGameState);
+  });
+});
+
+describe('playcard', () => {
+  test('should allow playing a valid card on player\'s turn', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['2H', '4S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['2S'], 
+      currentPlayerId: 'p1'
+    };
+
+    const result = playcard(mockGameState, 'p1', '2H');
+
+    expect(result.players[0].hand).toEqual(['4S']); 
+    expect(result.playDeck).toEqual(['2S', '2H']); 
+    expect(result.currentPlayerId).toBe('p2'); 
+  });
+
+  test('should not allow playing an invalid card', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['AS', '4S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['2S'], 
+      currentPlayerId: 'p1'
+    };
+
+    const result = playcard(mockGameState, 'p1', 'AS');
+
+    expect(result).toBeUndefined();
+  });
+
+  test('should not allow playing on wrong turn', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '4S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['2S'],
+      currentPlayerId: 'p1'
+    };
+
+    const result = playcard(mockGameState, 'p2', '5S');
+
+    expect(result).toBeUndefined();
+  });
+
+  test('should allow playing the first card on empty playDeck', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '4S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: [], 
+      currentPlayerId: 'p1'
+    };
+
+    const result = playcard(mockGameState, 'p1', '3S');
+
+    expect(result.players[0].hand).toEqual(['4S']);
+    expect(result.playDeck).toEqual(['3S']);
+    expect(result.currentPlayerId).toBe('p2');
+  });
+
+  test('should cycle to first player after last player', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S'] },
+        { id: 'p2', hand: ['2D'] }
+      ],
+      playDeck: ['2S'], 
+      currentPlayerId: 'p2' 
+    };
+
+    const result = playcard(mockGameState, 'p2', '2D');
+
+    expect(result.currentPlayerId).toBe('p1');
+  });
+
+  test('should not modify the original gameState', () => {
+    const mockGameState = {
+      pullDeck: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+      players: [{ id: "p1", hand: [] },
+      { id: "p2", hand: [] }],
+      playDeck: [],
+      currentPlayerId: 'p1'
+    };
+    const originalGameState = mockGameState;
+    playcard(mockGameState, 'p1', '3S');
     expect(mockGameState).toEqual(originalGameState);
   });
 });
