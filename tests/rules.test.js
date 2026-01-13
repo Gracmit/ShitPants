@@ -102,16 +102,16 @@ describe('playcard', () => {
         { id: 'p1', hand: ['2H', '4S'] },
         { id: 'p2', hand: ['5S'] }
       ],
-      playDeck: ['2S'], 
+      playDeck: ['2S'],
       pullDeck: [],
       currentPlayerId: 'p1'
     };
 
-    const result = playcard(mockGameState, 'p1', '2H');
+    const result = playcard(mockGameState, 'p1', ['2H']);
 
-    expect(result.players[0].hand).toEqual(['4S']); 
-    expect(result.playDeck).toEqual(['2S', '2H']); 
-    expect(result.currentPlayerId).toBe('p2'); 
+    expect(result.players[0].hand).toEqual(['4S']);
+    expect(result.playDeck).toEqual(['2S', '2H']);
+    expect(result.currentPlayerId).toBe('p2');
   });
 
   test('should not allow playing an invalid card', () => {
@@ -120,12 +120,12 @@ describe('playcard', () => {
         { id: 'p1', hand: ['AS', '4S'] },
         { id: 'p2', hand: ['5S'] }
       ],
-      playDeck: ['2S'], 
+      playDeck: ['2S'],
       pullDeck: [],
       currentPlayerId: 'p1'
     };
 
-    const result = playcard(mockGameState, 'p1', 'AS');
+    const result = playcard(mockGameState, 'p1', ['AS']);
 
     expect(result).toBeUndefined();
   });
@@ -141,7 +141,7 @@ describe('playcard', () => {
       currentPlayerId: 'p1'
     };
 
-    const result = playcard(mockGameState, 'p2', '5S');
+    const result = playcard(mockGameState, 'p2', ['5S']);
 
     expect(result).toBeUndefined();
   });
@@ -152,12 +152,12 @@ describe('playcard', () => {
         { id: 'p1', hand: ['3S', '4S'] },
         { id: 'p2', hand: ['5S'] }
       ],
-      playDeck: [], 
+      playDeck: [],
       pullDeck: [],
       currentPlayerId: 'p1'
     };
 
-    const result = playcard(mockGameState, 'p1', '3S');
+    const result = playcard(mockGameState, 'p1', ['3S']);
 
     expect(result.players[0].hand).toEqual(['4S']);
     expect(result.playDeck).toEqual(['3S']);
@@ -170,12 +170,12 @@ describe('playcard', () => {
         { id: 'p1', hand: ['3S'] },
         { id: 'p2', hand: ['2D'] }
       ],
-      playDeck: ['2S'], 
+      playDeck: ['2S'],
       pullDeck: [],
-      currentPlayerId: 'p2' 
+      currentPlayerId: 'p2'
     };
 
-    const result = playcard(mockGameState, 'p2', '2D');
+    const result = playcard(mockGameState, 'p2', ['2D']);
 
     expect(result.currentPlayerId).toBe('p1');
   });
@@ -189,8 +189,52 @@ describe('playcard', () => {
       currentPlayerId: 'p1'
     };
     const originalGameState = mockGameState;
-    playcard(mockGameState, 'p1', '3S');
+    playcard(mockGameState, 'p1', ['3S']);
     expect(mockGameState).toEqual(originalGameState);
+  });
+
+  test('should not allow playing cards of different values', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '4S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['2S'],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+    const result = playcard(mockGameState, 'p1', ['3S', '4S']);
+    expect(result).toBeUndefined();
+  });
+
+  test('should allow playing multiple valid cards of the same value', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '3D'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['3H'],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+    const result = playcard(mockGameState, 'p1', ['3S', '3D']);
+    expect(result.players[0].hand).toEqual([]);
+    expect(result.playDeck).toEqual(['3H', '3S', '3D']);
+    expect(result.currentPlayerId).toBe('p2');
+  });
+
+  test('cannot play a card not in hand', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '4S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['3D'],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+    const result = playcard(mockGameState, 'p1', ['5S']);
+    expect(result).toBeUndefined();
   });
 });
 
@@ -205,24 +249,24 @@ describe('drawACardIfNeeded', () => {
     expect(pullDeck).toEqual([]);
   });
 
-  test('should draw a card if player hand has 5 or fewer cards and pullDeck has cards', () => {
-    const player = { id: 'p1', hand: ['A', 'B', 'C', 'D'] }; // 4 cards
-    const pullDeck = ['F'];
+  test('should draw cards if player hand has 4 or fewer cards and pullDeck has cards, untill 5 cards at hand', () => {
+    const player = { id: 'p1', hand: ['A', 'B', 'C'] };
+    const pullDeck = ['D', 'F', 'G'];
 
     drawACardIfNeeded(player, pullDeck);
 
-    expect(player.hand).toEqual(['A', 'B', 'C', 'D', 'F']);
-    expect(pullDeck).toEqual([]);
+    expect(player.hand).toEqual(['A', 'B', 'C', 'G', 'F']);
+    expect(pullDeck).toEqual(['D']);
   });
 
-  test('should draw a card if player hand has exactly 5 cards and pullDeck has cards', () => {
+  test('should not draw a card if player hand has exactly 5 cards and pullDeck has cards', () => {
     const player = { id: 'p1', hand: ['A', 'B', 'C', 'D', 'E'] }; // 5 cards
     const pullDeck = ['F', 'G'];
 
     drawACardIfNeeded(player, pullDeck);
 
-    expect(player.hand).toEqual(['A', 'B', 'C', 'D', 'E', 'G']); // G popped
-    expect(pullDeck).toEqual(['F']);
+    expect(player.hand).toEqual(['A', 'B', 'C', 'D', 'E']); // G popped
+    expect(pullDeck).toEqual(['F', 'G']);
   });
 
   test('should not draw a card if player hand has more than 5 cards', () => {
@@ -234,4 +278,4 @@ describe('drawACardIfNeeded', () => {
     expect(player.hand).toEqual(['A', 'B', 'C', 'D', 'E', 'F']);
     expect(pullDeck).toEqual(['G']);
   });
-});
+})

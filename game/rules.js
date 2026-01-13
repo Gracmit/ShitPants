@@ -27,19 +27,23 @@ export const dealHands = (gameState) => {
     return {...gameState, players: players, pullDeck: pullDeck};
 };
 
-export const playcard = (gameState, playerId, card) => {
+export const playcard = (gameState, playerId, cards) => {
     if(!isPlayerTurn(gameState.currentPlayerId, playerId)) return
-    
-    if(!isTheCardValid(gameState.playDeck, card)) return
-    
+
+    if(!isTheCardValid(gameState.playDeck, cards)) return
+
+    if(!cards.every(card => gameState.players.find(player => player.id === playerId).hand.includes(card))) return
+
     let players = gameState.players.slice();
     let playDeck = gameState.playDeck.slice();
     let pullDeck = gameState.pullDeck.slice();
 
     let player = players.find(player => player.id === playerId);
-    player.hand = player.hand.filter(cardInHand => cardInHand !== card);
+    player.hand = player.hand.filter(cardInHand => !cards.some(cardPlayed => cardPlayed === cardInHand));
 
-    playDeck.push(card);
+    cards.forEach(card =>{
+       playDeck.push(card);
+    });
 
     drawACardIfNeeded(player, pullDeck);
 
@@ -51,9 +55,14 @@ const isPlayerTurn = (currentPlayerId, playerId) => {
     return currentPlayerId === playerId;
 }
 
-const isTheCardValid = (playDeck, card) => {
-    return cardValidityObject[card].includes(playDeck[playDeck.length - 1]) || playDeck.length === 0;
+const isTheCardValid = (playDeck, cards) => {
+    const cardValue = cards[0][0];
+    cards.forEach(card => {
+        if(card[0] !== cardValue) return false;
+    });
+    return cardValidityObject[cards[0]].includes(playDeck[playDeck.length - 1]) || playDeck.length === 0;
 }
+
 
 const getNextPlayerId = (gameState, playerId) => {
     let currentIndex = gameState.players.findIndex(player => player.id === playerId);
@@ -66,5 +75,8 @@ export const drawACardIfNeeded = (player, pullDeck) => {
 
     if(player.hand.length > 5) return;
 
-    player.hand.push(pullDeck.pop());
+    for (let i = player.hand.length; i < 5; i++)
+        if(pullDeck.length > 0){
+            player.hand.push(pullDeck.pop());
+        }
 }
