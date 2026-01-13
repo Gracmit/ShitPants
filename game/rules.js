@@ -34,11 +34,14 @@ export const playcard = (gameState, playerId, card) => {
     
     let players = gameState.players.slice();
     let playDeck = gameState.playDeck.slice();
+    let pullDeck = gameState.pullDeck.slice();
 
     let player = players.find(player => player.id === playerId);
     player.hand = player.hand.filter(cardInHand => cardInHand !== card);
 
     playDeck.push(card);
+
+    drawACardIfNeeded(player, pullDeck);
 
     let nextPlayerId = getNextPlayerId(gameState, playerId);
     return {...gameState, players: players, playDeck: playDeck, currentPlayerId: nextPlayerId};
@@ -58,3 +61,10 @@ const getNextPlayerId = (gameState, playerId) => {
     return gameState.players[nextIndex].id;
 }
 
+export const drawACardIfNeeded = (player, pullDeck) => {
+    if (pullDeck.length <= 0) return;
+
+    if(player.hand.length > 5) return;
+
+    player.hand.push(pullDeck.pop());
+}

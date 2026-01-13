@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { shuffleDeck, dealHands, playcard } from '../game/rules.js';
+import { shuffleDeck, dealHands, playcard, drawACardIfNeeded } from '../game/rules.js';
 
 describe('shuffleDeck', () => {
   test('should shuffle the deck without changing its length or elements', () => {
@@ -103,6 +103,7 @@ describe('playcard', () => {
         { id: 'p2', hand: ['5S'] }
       ],
       playDeck: ['2S'], 
+      pullDeck: [],
       currentPlayerId: 'p1'
     };
 
@@ -120,6 +121,7 @@ describe('playcard', () => {
         { id: 'p2', hand: ['5S'] }
       ],
       playDeck: ['2S'], 
+      pullDeck: [],
       currentPlayerId: 'p1'
     };
 
@@ -135,6 +137,7 @@ describe('playcard', () => {
         { id: 'p2', hand: ['5S'] }
       ],
       playDeck: ['2S'],
+      pullDeck: [],
       currentPlayerId: 'p1'
     };
 
@@ -150,6 +153,7 @@ describe('playcard', () => {
         { id: 'p2', hand: ['5S'] }
       ],
       playDeck: [], 
+      pullDeck: [],
       currentPlayerId: 'p1'
     };
 
@@ -167,6 +171,7 @@ describe('playcard', () => {
         { id: 'p2', hand: ['2D'] }
       ],
       playDeck: ['2S'], 
+      pullDeck: [],
       currentPlayerId: 'p2' 
     };
 
@@ -186,5 +191,47 @@ describe('playcard', () => {
     const originalGameState = mockGameState;
     playcard(mockGameState, 'p1', '3S');
     expect(mockGameState).toEqual(originalGameState);
+  });
+});
+
+describe('drawACardIfNeeded', () => {
+  test('should not draw if pullDeck is empty', () => {
+    const player = { id: 'p1', hand: ['A', 'B', 'C', 'D', 'E'] };
+    const pullDeck = [];
+
+    drawACardIfNeeded(player, pullDeck);
+
+    expect(player.hand).toEqual(['A', 'B', 'C', 'D', 'E']);
+    expect(pullDeck).toEqual([]);
+  });
+
+  test('should draw a card if player hand has 5 or fewer cards and pullDeck has cards', () => {
+    const player = { id: 'p1', hand: ['A', 'B', 'C', 'D'] }; // 4 cards
+    const pullDeck = ['F'];
+
+    drawACardIfNeeded(player, pullDeck);
+
+    expect(player.hand).toEqual(['A', 'B', 'C', 'D', 'F']);
+    expect(pullDeck).toEqual([]);
+  });
+
+  test('should draw a card if player hand has exactly 5 cards and pullDeck has cards', () => {
+    const player = { id: 'p1', hand: ['A', 'B', 'C', 'D', 'E'] }; // 5 cards
+    const pullDeck = ['F', 'G'];
+
+    drawACardIfNeeded(player, pullDeck);
+
+    expect(player.hand).toEqual(['A', 'B', 'C', 'D', 'E', 'G']); // G popped
+    expect(pullDeck).toEqual(['F']);
+  });
+
+  test('should not draw a card if player hand has more than 5 cards', () => {
+    const player = { id: 'p1', hand: ['A', 'B', 'C', 'D', 'E', 'F'] }; // 6 cards
+    const pullDeck = ['G'];
+
+    drawACardIfNeeded(player, pullDeck);
+
+    expect(player.hand).toEqual(['A', 'B', 'C', 'D', 'E', 'F']);
+    expect(pullDeck).toEqual(['G']);
   });
 });
