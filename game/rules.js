@@ -48,7 +48,6 @@ export const playcard = (gameState, playerId, cards) => {
     drawACardIfNeeded(player, pullDeck);
 
     if(PlayingDeckCollapses(cards[0], playDeck)){
-        console.log("Collapsing the deck!");
         return{...gameState, players: players, playDeck: [], pullDeck: pullDeck, currentPlayerId: playerId};
     }
 
@@ -90,7 +89,6 @@ export const drawACardIfNeeded = (player, pullDeck) => {
 }
 
 const PlayingDeckCollapses = (cardPlayed, playDeck) => {
-    console.log("Checking for collapse...", cardPlayed, playDeck);
     if(collapsingCards.includes(cardPlayed)) return true;
 
     if(playDeck.length < 4) return false;
@@ -99,4 +97,34 @@ const PlayingDeckCollapses = (cardPlayed, playDeck) => {
     if(playDeck.slice(-4).every(card => card.slice(0, -1) === topCardValue)){
         return true;
     }
+}
+
+export const findFirstTurnPlayer = (gameState) => {
+    let lowestCard = null;
+    let firstPlayerId = null;
+
+    gameState.players.forEach(player => {
+        player.hand.forEach(card => {
+            if (lowestCard === null || isCardLower(card, lowestCard)) {
+                lowestCard = card;
+                firstPlayerId = player.id;
+            }
+        });
+    });
+
+    return firstPlayerId;
+}
+
+const isCardLower = (cardA, cardB) => {
+    const cardOrder = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
+    const valueA = cardA.slice(0, -1);
+    const valueB = cardB.slice(0, -1);
+    return cardOrder.indexOf(valueA) < cardOrder.indexOf(valueB);
+}
+
+export const initializeGame = (gameState) => {
+    let shuffledGameState = shuffleDeck(gameState);
+    let dealtGameState = dealHands(shuffledGameState);
+    let firstPlayerId = findFirstTurnPlayer(dealtGameState);
+    return {...dealtGameState, currentPlayerId: firstPlayerId};
 }

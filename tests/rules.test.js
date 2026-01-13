@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { shuffleDeck, dealHands, playcard, drawACardIfNeeded } from '../game/rules.js';
+import { shuffleDeck, dealHands, playcard, drawACardIfNeeded, findFirstTurnPlayer } from '../game/rules.js';
 
 describe('shuffleDeck', () => {
   test('should shuffle the deck without changing its length or elements', () => {
@@ -313,3 +313,33 @@ describe('drawACardIfNeeded', () => {
     expect(pullDeck).toEqual(['G']);
   });
 })
+
+describe('findFirstTurnPlayer', () => {
+  test('should return the id of the player with the lowest card', () => {
+    const mockGameState = { 
+      players: [
+        { id: 'p1', hand: ['3S', '4S'] },
+        { id: 'p2', hand: ['2D', '5H'] }
+      ],
+      playDeck: [],
+      pullDeck: [],
+      currentPlayerId: null
+    };
+    const result = findFirstTurnPlayer(mockGameState);
+    expect(result).toBe('p1');
+  });
+  test('should handle multiple players and return the correct player id', () => {
+    const mockGameState = { 
+      players: [
+        { id: 'p1', hand: ['5S', '6S'] },
+        { id: 'p2', hand: ['3D', '4H'] },
+        { id: 'p3', hand: ['2C', '7D'] }
+      ],
+      playDeck: [],
+      pullDeck: [],
+      currentPlayerId: null
+    };
+    const result = findFirstTurnPlayer(mockGameState);
+    expect(result).toBe('p2');
+  });
+});
