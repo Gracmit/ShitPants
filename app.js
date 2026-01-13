@@ -1,7 +1,7 @@
-import express from "express"
+import express from "express";
 
-const app = express()
+const app = express();
 
-app.use(express.json())
+app.use(express.json());
 
-export default app
+export default app;
