@@ -52,3 +52,5 @@ export const cardValidityObject = {
     "QC": ["QS", "QH", "QD", "KS", "KH", "KD", "KC", "AS", "AH", "AD", "AC"],
     "KC": ["KS", "KH", "KD", "AS", "AH", "AD", "AC"]
 };
+
+export const collapsingCards = ['10S', '10H', '10D', '10C', 'AS', 'AH', 'AD', 'AC'];

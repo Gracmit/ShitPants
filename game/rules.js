@@ -1,4 +1,4 @@
-import { cardValidityObject } from "./cardValidityObject.js";
+import { cardValidityObject, collapsingCards } from "./cardValidity.js";
 
 export const shuffleDeck = (gameState) => {
     let deck = gameState.pullDeck.slice();
@@ -30,7 +30,7 @@ export const dealHands = (gameState) => {
 export const playcard = (gameState, playerId, cards) => {
     if(!isPlayerTurn(gameState.currentPlayerId, playerId)) return
 
-    if(!isTheCardValid(gameState.playDeck, cards)) return
+    if(!AreTheCardsValid(gameState.playDeck, cards)) return
 
     if(!cards.every(card => gameState.players.find(player => player.id === playerId).hand.includes(card))) return
 
@@ -47,20 +47,28 @@ export const playcard = (gameState, playerId, cards) => {
 
     drawACardIfNeeded(player, pullDeck);
 
+    if(PlayingDeckCollapses(cards[0], playDeck)){
+        console.log("Collapsing the deck!");
+        return{...gameState, players: players, playDeck: [], pullDeck: pullDeck, currentPlayerId: playerId};
+    }
+
     let nextPlayerId = getNextPlayerId(gameState, playerId);
-    return {...gameState, players: players, playDeck: playDeck, currentPlayerId: nextPlayerId};
+    return {...gameState, players: players, playDeck: playDeck, pullDeck: pullDeck, currentPlayerId: nextPlayerId};
 }
 
 const isPlayerTurn = (currentPlayerId, playerId) => {
     return currentPlayerId === playerId;
 }
 
-const isTheCardValid = (playDeck, cards) => {
+const AreTheCardsValid = (playDeck, cards) => {
     const cardValue = cards[0][0];
+    
     cards.forEach(card => {
         if(card[0] !== cardValue) return false;
     });
-    return cardValidityObject[cards[0]].includes(playDeck[playDeck.length - 1]) || playDeck.length === 0;
+
+    if (playDeck.length === 0) return true;
+    return cardValidityObject[playDeck[playDeck.length - 1]].includes(cards[0]) || playDeck.length === 0;
 }
 
 
@@ -79,4 +87,16 @@ export const drawACardIfNeeded = (player, pullDeck) => {
         if(pullDeck.length > 0){
             player.hand.push(pullDeck.pop());
         }
+}
+
+const PlayingDeckCollapses = (cardPlayed, playDeck) => {
+    console.log("Checking for collapse...", cardPlayed, playDeck);
+    if(collapsingCards.includes(cardPlayed)) return true;
+
+    if(playDeck.length < 4) return false;
+
+    const topCardValue = playDeck[playDeck.length -1].slice(0, -1);
+    if(playDeck.slice(-4).every(card => card.slice(0, -1) === topCardValue)){
+        return true;
+    }
 }

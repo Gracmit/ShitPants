@@ -236,6 +236,40 @@ describe('playcard', () => {
     const result = playcard(mockGameState, 'p1', ['5S']);
     expect(result).toBeUndefined();
   });
+
+  test('should collapse playDeck when A is played', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '4S', 'AS'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['QD'],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+    const result = playcard(mockGameState, 'p1', ['AS']);
+    console.log(result);
+    expect(result.playDeck).toEqual([]);
+    expect(result.players[0].hand).toEqual(['3S', '4S']);
+    expect(result.currentPlayerId).toBe('p1');
+  });
+
+  test('should collapse playDeck when 10 is played', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '4S', '10S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['5D'],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+    const result = playcard(mockGameState, 'p1', ['10S']);
+    console.log(result);
+    expect(result.playDeck).toEqual([]);
+    expect(result.players[0].hand).toEqual(['3S', '4S']);
+    expect(result.currentPlayerId).toBe('p1');
+  });
 });
 
 describe('drawACardIfNeeded', () => {
