@@ -4,14 +4,17 @@ import setup from "../game/setup.js";
 
 const gameRouter = express.Router();
 
-gameRouter.post("/", (req, res) => {
-    const playerId = req.body.playerId;
-    const newGame = setup.createGame(playerId);
+gameRouter.post("/create", (req, res) => {
+    const gameName = req.body.gameName;
+    const password = req.body.password;
+    const numPlayers = req.body.numPlayers;
+    const playerName = req.body.playerName;
+    const newGame = setup.createGame(gameName, password, numPlayers, playerName);
     gameStore.create(newGame);
     res.status(201).json(newGame);
 });
 
-gameRouter.get("/:id", (req, res) => {
+gameRouter.get("/status/:id", (req, res) => {
     const game = gameStore.get(req.params.id);
     if (game) {
         res.json(game);

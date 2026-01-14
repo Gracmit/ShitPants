@@ -7,6 +7,7 @@ import Game from './components/Game'
 
 function App() {
   const [appState, setAppState] = useState('MAIN_MENU')
+  const [userName, setUserName] = useState(null)
 
   const goToCreateGame = () => {
     setAppState('CREATE_GAME')
@@ -28,11 +29,17 @@ function App() {
     setAppState('MAIN_MENU')
   }
 
+  const setNewUserName = (name) => {
+    setUserName(name)
+  }
+
+  console.log("Rendering App with state:", appState, "and userName:", userName);
+
   return (
     <div className="App">
-      {appState === 'MAIN_MENU' && <MainMenu createGame={goToCreateGame} joinGame={goToJoinGame}/>}
-      {appState === 'CREATE_GAME' && <CreateGame joinLobby={goToLobby}/>}
-      {appState === 'LOBBY' && <Lobby findGame={goToFindGame}/>}
+      {appState === 'MAIN_MENU' && <MainMenu createGame={goToCreateGame} findGame={goToFindGame} setUserName={setNewUserName} userName={userName}/>}
+      {appState === 'CREATE_GAME' && <CreateGame joinLobby={goToLobby} userName={userName}/>}
+      {appState === 'LOBBY' && <Lobby findGame={goToFindGame} goToGame={goToGame}/>}
       {appState === 'FIND_GAME' && <FindGame joinLobby={goToLobby} mainMenu={goToMainMenu} createGame={goToCreateGame}/>}
       {appState === 'GAME' && <Game />}
     </div>

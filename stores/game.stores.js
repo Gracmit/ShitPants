@@ -2,7 +2,9 @@ const games = new Map();
 
 export const gameStore = {
     create(state) {
-        games.set(generateId(), state);
+        const id = generateId();
+        games.set(id, state);
+        state = {...state, id: id};
         return state;
     },
     get(id) {
@@ -15,7 +17,7 @@ export const gameStore = {
 };
 
 const generateId = () => {
-    keys = games.keys();
+    const keys = Array.from(games.keys());
     if(keys.length === 0) return 1;
-    return keys[length - 1] + 1;
+    return keys[keys.length - 1] + 1;
 }

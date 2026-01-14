@@ -1,8 +1,11 @@
 import { gameState } from "./gameState.js";
 
-export const createGame = (playerId) => {
-    const player = {id: playerId, hand: []};
+export const createGame = (gameName, password, numPlayers, playerName) => {
+    const player = {id: playerName, hand: []};
     const game = {...gameState, players: [player]};
+    game.name = gameName;
+    game.password = password;
+    game.maxPlayers = numPlayers;
     return game;
 }
 

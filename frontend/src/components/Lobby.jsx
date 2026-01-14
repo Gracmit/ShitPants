@@ -1,4 +1,4 @@
-const Lobby = () => {
+const Lobby = (goToJoinGame) => {
   return (
     <div>
         <h2>Lobby</h2>

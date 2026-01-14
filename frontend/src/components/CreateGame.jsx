@@ -1,12 +1,21 @@
 import { useState } from "react";
-const CreateGame = ({ joinLobby }) => {
+import gameService from '../services/game.js';
+const CreateGame = ({ joinLobby, userName }) => {
     const [gameName, setGameName] = useState("");
     const [password, setPassword] = useState("");
     const [numPlayers, setNumPlayers] = useState(2);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Creating game with details:", { gameName, password, numPlayers });
+        const gameData = {
+            gameName,
+            password,
+            numPlayers,
+            playerName: userName
+        }
+
+        const data = await gameService.createGame(gameData);
+        console.log("Game created:", data);
         joinLobby();
     };
 
