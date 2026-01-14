@@ -9,8 +9,8 @@ gameRouter.post("/create", (req, res) => {
     const password = req.body.password;
     const numPlayers = req.body.numPlayers;
     const playerName = req.body.playerName;
-    const newGame = setup.createGame(gameName, password, numPlayers, playerName);
-    gameStore.create(newGame);
+    let newGame = setup.createGame(gameName, password, numPlayers, playerName);
+    newGame = gameStore.create(newGame);
     res.status(201).json(newGame);
 });
 
