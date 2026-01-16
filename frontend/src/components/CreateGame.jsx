@@ -1,6 +1,6 @@
 import { useState } from "react";
 import gameService from '../services/game.js';
-const CreateGame = ({ joinLobby, userName }) => {
+const CreateGame = ({ joinLobby, userName, setLobbyInfo }) => {
     const [gameName, setGameName] = useState("");
     const [password, setPassword] = useState("");
     const [numPlayers, setNumPlayers] = useState(2);
@@ -16,6 +16,7 @@ const CreateGame = ({ joinLobby, userName }) => {
 
         const data = await gameService.createGame(gameData);
         console.log("Game created:", data);
+        setLobbyInfo({id: data.id, name: data.name, password: data.password});
         joinLobby();
     };
 
