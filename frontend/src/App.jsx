@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import socket from './services/socket.js'
 import MainMenu from './components/MainMenu'
 import CreateGame from './components/CreateGame'
 import Lobby from './components/Lobby'
@@ -9,6 +10,14 @@ function App() {
   const [appState, setAppState] = useState('MAIN_MENU')
   const [userName, setUserName] = useState(null)
   const [lobbyInfo, setLobbyInfo] = useState(null)
+
+  useEffect(() => {
+      socket.connect();
+
+    return () => {
+      socket.disconnect()
+    }
+  }, [])
 
   const goToCreateGame = () => {
     setAppState('CREATE_GAME')
