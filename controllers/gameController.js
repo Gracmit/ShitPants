@@ -32,4 +32,9 @@ gameRouter.put("/:id", (req, res) => {
     res.json(updatedGame);
 });
 
+gameRouter.get("/", (req, res) => {
+    const games = gameStore.getAll();
+    res.json(games);
+});
+
 export default gameRouter;

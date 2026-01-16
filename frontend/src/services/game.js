@@ -10,6 +10,10 @@ const gameService = {
   getGameStatus: async (gameId) => {
     const response = await axios.get(`${API_BASE_URL}/status/${gameId}`);
     return response.data;
+  },
+  getGames: async () => {
+    const response = await axios.get(`${API_BASE_URL}/`);
+    return response.data;
   }
 };
 

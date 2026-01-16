@@ -13,6 +13,9 @@ export const gameStore = {
     update(id, state) {
         games.set(id, state);
         return state;
+    },
+    getAll() {
+        return Array.from(games.values());
     }
 };
 
