@@ -17,6 +17,14 @@ const FindGame = ({ joinLobby, mainMenu, createGame, setLobbyInfo }) => {
       alert("Game is full!");
       return;
     }
+
+    if(game.password !== "") {
+      const password = prompt("Enter game password:");
+      if(password !== game.password) {
+        alert("Incorrect password!");
+        return;
+      }
+    }
     setLobbyInfo({id: game.id, name: game.name, password: game.password});
     joinLobby();
   }
@@ -29,8 +37,9 @@ const FindGame = ({ joinLobby, mainMenu, createGame, setLobbyInfo }) => {
         <ul>
           {availableGames.map((game) => (
             <li key={game.id}>
+              
               {game.name} - Players: {game.players.length}/{game.maxPlayers}
-              <button onClick={() => handleJoinLobby(game)}>Join</button>
+              <button onClick={() => handleJoinLobby(game)}>Join {game.password !== "" && <span>🔒</span>}</button>
             </li>
           ))}
         </ul>
