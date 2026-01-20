@@ -1,6 +1,6 @@
 import { gameState } from "./gameState.js";
 
-export const createGame = (gameName, password, numPlayers, playerName) => {
+const createGame = (gameName, password, numPlayers, playerName) => {
     const player = {id: playerName, hand: []};
     const game = {...gameState, players: [player]};
     game.name = gameName;
@@ -9,8 +9,7 @@ export const createGame = (gameName, password, numPlayers, playerName) => {
     return game;
 }
 
-export const addPlayerToGame = (game, playerId) => {
-    console.log(`Adding player ${playerId} to game ${game.id}`);
+const addPlayerToGame = (game, playerId) => {
     if (game.players.find(p => p.id === playerId)) {
         return game;
     }
@@ -19,4 +18,9 @@ export const addPlayerToGame = (game, playerId) => {
     return {...game, players: updatedPlayers};
 }
 
-export default { createGame, addPlayerToGame };
+const removePlayerFromGame = (game, playerId) => {
+    const updatedPlayers = game.players.filter(p => p.id !== playerId);
+    return {...game, players: updatedPlayers};
+}
+
+export default { createGame, addPlayerToGame, removePlayerFromGame };

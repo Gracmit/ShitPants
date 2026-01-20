@@ -27,6 +27,23 @@ export const setupSocket = (server) => {
             });
         });
 
+        socket.on("leaveLobby", (data) => {
+            socket.leave(data.lobbyId);
+            const game = gameStore.get(data.lobbyId);
+            const updatedGame = setup.removePlayerFromGame(game, data.userName);
+            if (updatedGame.players.length === 0) {
+                gameStore.remove(data.lobbyId);
+            } else {
+                io.to(data.lobbyId).emit("chat:message", {
+                    userName: "System",
+                    message: `${data.userName} left the lobby.`,
+                });
+                gameStore.update(data.lobbyId, updatedGame);
+                io.to(data.lobbyId).emit("lobby:updated", updatedGame);
+            }
+
+        });
+
         socket.on("chat:message", (data) => {
             io.to(data.lobbyId).emit("chat:message", {
                 userName: data.userName,

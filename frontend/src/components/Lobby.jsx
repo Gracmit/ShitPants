@@ -12,14 +12,18 @@ const Lobby = ({ findGame, goToGame, lobbyInfo, userName }) => {
         setPlayers(game.players);
     });
 
-    
-
     socket.emit("joinLobby", { lobbyId: lobbyInfo.id, userName: userName });
 
     return () => {
       socket.off("lobby:updated");
     };
   }, []);
+
+
+  const leaveLobby = () => {
+    socket.emit("leaveLobby", { lobbyId: lobbyInfo.id, userName: userName });
+    findGame();
+  }
 
   return (
     <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
@@ -29,7 +33,7 @@ const Lobby = ({ findGame, goToGame, lobbyInfo, userName }) => {
         <p>Game Name: {lobbyInfo?.name}</p>
         <p>Password: {lobbyInfo?.password}</p>
 
-        <button onClick={findGame}>Back to Find Game</button>
+        <button onClick={leaveLobby}>Back to Find Game</button>
 
         <h2>Players in Lobby</h2>
         {players.map(player => <p key={player.id}>{player.id}</p>)}

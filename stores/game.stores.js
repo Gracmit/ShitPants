@@ -16,6 +16,9 @@ export const gameStore = {
     },
     getAll() {
         return Array.from(games.values());
+    },
+    remove(id) {
+        games.delete(id);
     }
 };
 
