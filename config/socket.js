@@ -16,12 +16,22 @@ export const setupSocket = (server) => {
         console.log(`Socket connected: ${socket.id}`);
 
         socket.on("joinLobby", (data) => {
-            console.log(`User ${data.userName} joining lobby ${data.lobbyId}`);
             socket.join(data.lobbyId);
             const game = gameStore.get(data.lobbyId);
             const updatedGame = setup.addPlayerToGame(game, data.userName);
             gameStore.update(data.lobbyId, updatedGame);
             io.to(data.lobbyId).emit("lobby:updated", updatedGame);
+            io.to(data.lobbyId).emit("chat:message", {
+                userName: "System",
+                message: `${data.userName} joined the lobby.`,
+            });
+        });
+
+        socket.on("chat:message", (data) => {
+            io.to(data.lobbyId).emit("chat:message", {
+                userName: data.userName,
+                message: data.message,
+            });
         });
 
         socket.on("disconnect", () => {
