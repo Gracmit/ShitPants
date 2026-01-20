@@ -44,6 +44,17 @@ export const setupSocket = (server) => {
 
         });
 
+        socket.on("player:readyStatus", (data) => {
+            const game = gameStore.get(data.lobbyId);
+            const updatedGame = setup.setPlayerReadyStatus(game, data.userName, data.isReady);
+            gameStore.update(data.lobbyId, updatedGame);
+            io.to(data.lobbyId).emit("lobby:updated", updatedGame);
+            io.to(data.lobbyId).emit("chat:message", {
+                userName: "System",
+                message: `${data.userName} is now ${data.isReady ? "ready" : "not ready"}.`,
+            });
+        });
+
         socket.on("chat:message", (data) => {
             io.to(data.lobbyId).emit("chat:message", {
                 userName: data.userName,

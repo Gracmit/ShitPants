@@ -4,6 +4,7 @@ import Chat from "./Chat";
 
 const Lobby = ({ findGame, goToGame, lobbyInfo, userName }) => {
   const [players, setPlayers] = useState([]);
+  const [playerReadyStatus, setPlayerReadyStatus] = useState(false);
 
   useEffect(() => {
     
@@ -25,6 +26,15 @@ const Lobby = ({ findGame, goToGame, lobbyInfo, userName }) => {
     findGame();
   }
 
+  const setReadyStatus = (isReady) => {
+    setPlayerReadyStatus(isReady);
+    socket.emit("player:readyStatus", {
+      lobbyId: lobbyInfo.id,
+      userName: userName,
+      isReady: isReady
+    });
+  }
+
   return (
     <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
       <div style={{ flex: 1 }}>
@@ -33,10 +43,13 @@ const Lobby = ({ findGame, goToGame, lobbyInfo, userName }) => {
         <p>Game Name: {lobbyInfo?.name}</p>
         <p>Password: {lobbyInfo?.password}</p>
 
+        {!playerReadyStatus && <button onClick={() => setReadyStatus(true)}>Ready</button>}
+        {playerReadyStatus && <button onClick={() => setReadyStatus(false)}>Unready</button>}
+
         <button onClick={leaveLobby}>Back to Find Game</button>
 
         <h2>Players in Lobby</h2>
-        {players.map(player => <p key={player.id}>{player.id}</p>)}
+        {players.map(player => <p key={player.id}>{player.id} {player.isReady ? "Ready" : "Not Ready"}</p>)}
       </div>
 
       <Chat lobbyId={lobbyInfo?.id} userName={userName} />
