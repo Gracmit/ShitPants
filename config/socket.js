@@ -1,5 +1,7 @@
 import { Server } from "socket.io";
 import { registerGameSocket } from "../sockets/game.socket.js";
+import setup from "../game/setup.js";
+import { gameStore } from "../stores/game.stores.js";
 
 export const setupSocket = (server) => {
     const io = new Server(server, {
@@ -12,6 +14,15 @@ export const setupSocket = (server) => {
     io.on("connection", (socket) => {
         registerGameSocket(io, socket);
         console.log(`Socket connected: ${socket.id}`);
+
+        socket.on("joinLobby", (data) => {
+            console.log(`User ${data.userName} joining lobby ${data.lobbyId}`);
+            socket.join(data.lobbyId);
+            const game = gameStore.get(data.lobbyId);
+            const updatedGame = setup.addPlayerToGame(game, data.userName);
+            gameStore.update(data.lobbyId, updatedGame);
+            io.to(data.lobbyId).emit("lobby:updated", updatedGame);
+        });
 
         socket.on("disconnect", () => {
             console.log("Socket disconnected:", socket.id)

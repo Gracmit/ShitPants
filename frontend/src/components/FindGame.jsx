@@ -7,6 +7,7 @@ const FindGame = ({ joinLobby, mainMenu, createGame, setLobbyInfo }) => {
 
   useEffect(() => {
     gameService.getGames().then(games => {
+      console.log(games);
       setAvailableGames(games);
     }); 
   }, []);

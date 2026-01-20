@@ -3,8 +3,8 @@ const games = new Map();
 export const gameStore = {
     create(state) {
         const id = generateId();
-        games.set(id, state);
         state = {...state, id: id};
+        games.set(id, state);
         return state;
     },
     get(id) {

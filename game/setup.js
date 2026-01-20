@@ -10,6 +10,10 @@ export const createGame = (gameName, password, numPlayers, playerName) => {
 }
 
 export const addPlayerToGame = (game, playerId) => {
+    console.log(`Adding player ${playerId} to game ${game.id}`);
+    if (game.players.find(p => p.id === playerId)) {
+        return game;
+    }
     const newPlayer = {id: playerId, hand: []};
     const updatedPlayers = [...game.players, newPlayer];
     return {...game, players: updatedPlayers};
