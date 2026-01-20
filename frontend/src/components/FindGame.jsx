@@ -13,6 +13,10 @@ const FindGame = ({ joinLobby, mainMenu, createGame, setLobbyInfo }) => {
   }, []);
 
   const handleJoinLobby = (game) => {
+    if(game.players.length >= game.maxPlayers) {
+      alert("Game is full!");
+      return;
+    }
     setLobbyInfo({id: game.id, name: game.name, password: game.password});
     joinLobby();
   }
