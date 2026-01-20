@@ -12,11 +12,12 @@ export const setupSocket = (server) => {
     });
 
     io.on("connection", (socket) => {
-        registerGameSocket(io, socket);
+        //registerGameSocket(io, socket);
         console.log(`Socket connected: ${socket.id}`);
 
         socket.on("joinLobby", (data) => {
             socket.join(data.lobbyId);
+            socket.userName = data.userName;
             const game = gameStore.get(data.lobbyId);
             const updatedGame = setup.addPlayerToGame(game, data.userName);
             gameStore.update(data.lobbyId, updatedGame);
@@ -28,8 +29,13 @@ export const setupSocket = (server) => {
         });
 
         socket.on("leaveLobby", (data) => {
+            leaveLobby(data);
+        });
+
+        const leaveLobby = (data) => {
             socket.leave(data.lobbyId);
             const game = gameStore.get(data.lobbyId);
+            if (!game) return;
             const updatedGame = setup.removePlayerFromGame(game, data.userName);
             if (updatedGame.players.length === 0) {
                 gameStore.remove(data.lobbyId);
@@ -42,7 +48,7 @@ export const setupSocket = (server) => {
                 io.to(data.lobbyId).emit("lobby:updated", updatedGame);
             }
 
-        });
+        };
 
         socket.on("player:readyStatus", (data) => {
             const game = gameStore.get(data.lobbyId);
@@ -85,6 +91,10 @@ export const setupSocket = (server) => {
 
         socket.on("disconnect", () => {
             console.log("Socket disconnected:", socket.id)
+            const game = gameStore.getWithPlayer(socket.userName);
+            console.log("Found game on disconnect:", game);
+            if (!game) return;
+            leaveLobby({ lobbyId: game.id, userName: socket.userName });
         });
     });
 
