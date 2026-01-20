@@ -13,6 +13,11 @@ const Lobby = ({ findGame, goToGame, lobbyInfo, userName }) => {
         setPlayers(game.players);
     });
 
+    socket.on("game:starting", (game) => {
+        console.log("Game starting:", game);
+        goToGame();
+    });
+
     socket.emit("joinLobby", { lobbyId: lobbyInfo.id, userName: userName });
 
     return () => {

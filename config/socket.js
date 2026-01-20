@@ -48,6 +48,27 @@ export const setupSocket = (server) => {
             const game = gameStore.get(data.lobbyId);
             const updatedGame = setup.setPlayerReadyStatus(game, data.userName, data.isReady);
             gameStore.update(data.lobbyId, updatedGame);
+
+            if(updatedGame.players.length >= 2 && updatedGame.players.every(p => p.isReady)) {
+                io.to(data.lobbyId).emit("lobby:updated", updatedGame);
+                io.to(data.lobbyId).emit("chat:message", {
+                    userName: "System",
+                    message: "All players are ready! Game is starting in 3 seconds...",
+                });
+                setTimeout(() => {
+                    if(gameStore.get(data.lobbyId).players.every(p => p.isReady)) {
+                        io.to(data.lobbyId).emit("game:starting", updatedGame);
+                        return;
+                    }
+                    io.to(data.lobbyId).emit("chat:message", {
+                        userName: "System",
+                        message: "Not all players are ready. Game start cancelled.",
+                    });
+
+                }, 3000);
+                return;
+            }
+
             io.to(data.lobbyId).emit("lobby:updated", updatedGame);
             io.to(data.lobbyId).emit("chat:message", {
                 userName: "System",
