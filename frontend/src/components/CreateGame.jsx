@@ -1,6 +1,6 @@
 import { useState } from "react";
 import gameService from '../services/game.js';
-const CreateGame = ({ joinLobby, userName, setLobbyInfo }) => {
+const CreateGame = ({ joinLobby, userName, setLobbyInfo, mainMenu }) => {
     const [gameName, setGameName] = useState("");
     const [password, setPassword] = useState("");
     const [numPlayers, setNumPlayers] = useState(2);
@@ -39,6 +39,8 @@ const CreateGame = ({ joinLobby, userName, setLobbyInfo }) => {
 
                 <button type="submit">Create Game</button>
             </form>
+
+            <button onClick={mainMenu}>Back to Main Menu</button>
         </div>
     );
 }

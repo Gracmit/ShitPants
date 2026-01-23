@@ -52,7 +52,7 @@ function App() {
   return (
     <div className="App">
       {appState === 'MAIN_MENU' && <MainMenu createGame={goToCreateGame} findGame={goToFindGame} setUserName={setNewUserName} userName={userName}/>}
-      {appState === 'CREATE_GAME' && <CreateGame joinLobby={goToLobby} userName={userName} setLobbyInfo={setNewLobbyInfo}/>}
+      {appState === 'CREATE_GAME' && <CreateGame joinLobby={goToLobby} userName={userName} setLobbyInfo={setNewLobbyInfo} mainMenu={goToMainMenu}/>}
       {appState === 'LOBBY' && <Lobby findGame={goToFindGame} goToGame={goToGame} lobbyInfo={lobbyInfo} userName={userName}/>}
       {appState === 'FIND_GAME' && <FindGame joinLobby={goToLobby} mainMenu={goToMainMenu} createGame={goToCreateGame} setLobbyInfo={setNewLobbyInfo}/>}
       {appState === 'GAME' && <Game />}
