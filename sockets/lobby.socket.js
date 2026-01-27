@@ -47,6 +47,7 @@ export const registerLobbySocket = (io, socket) => {
             setTimeout(() => {
                 if(gameStore.get(data.lobbyId).players.every(p => p.isReady)) {
                     const initializedGame = initializeGame(updatedGame);
+                    gameStore.update(data.lobbyId, initializedGame);
                     io.to(data.lobbyId).emit("game:starting", initializedGame);
                     return;
                 }

@@ -15,7 +15,7 @@ const Lobby = ({ findGame, goToGame, lobbyInfo, userName }) => {
 
     socket.on("game:starting", (game) => {
         console.log("Game starting:", game);
-        goToGame();
+        goToGame(game);
     });
 
     socket.emit("joinLobby", { lobbyId: lobbyInfo.id, userName: userName });

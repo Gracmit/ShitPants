@@ -27,7 +27,8 @@ function App() {
     setAppState('LOBBY')
   }
 
-  const goToGame = () => {
+  const goToGame = (gameState) => {
+    setLobbyInfo(gameState);
     setAppState('GAME')
   }
 
@@ -55,7 +56,7 @@ function App() {
       {appState === 'CREATE_GAME' && <CreateGame joinLobby={goToLobby} userName={userName} setLobbyInfo={setNewLobbyInfo} mainMenu={goToMainMenu}/>}
       {appState === 'LOBBY' && <Lobby findGame={goToFindGame} goToGame={goToGame} lobbyInfo={lobbyInfo} userName={userName}/>}
       {appState === 'FIND_GAME' && <FindGame joinLobby={goToLobby} mainMenu={goToMainMenu} createGame={goToCreateGame} setLobbyInfo={setNewLobbyInfo}/>}
-      {appState === 'GAME' && <Game />}
+      {appState === 'GAME' && <Game lobbyInfo={lobbyInfo} userName={userName} />}
     </div>
   )
 }

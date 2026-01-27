@@ -47,7 +47,7 @@ export const playcard = (gameState, playerId, cards) => {
 
     drawACardIfNeeded(player, pullDeck);
 
-    if(PlayingDeckCollapses(cards[0], playDeck)){
+    if(playingDeckCollapses(cards[0], playDeck)){
         return{...gameState, players: players, playDeck: [], pullDeck: pullDeck, currentPlayerId: playerId};
     }
 
@@ -88,7 +88,7 @@ export const drawACardIfNeeded = (player, pullDeck) => {
         }
 }
 
-const PlayingDeckCollapses = (cardPlayed, playDeck) => {
+const playingDeckCollapses = (cardPlayed, playDeck) => {
     if(collapsingCards.includes(cardPlayed)) return true;
 
     if(playDeck.length < 4) return false;
