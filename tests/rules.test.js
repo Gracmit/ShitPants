@@ -1,13 +1,12 @@
 import { describe, test, expect } from 'vitest';
 import { shuffleDeck, dealHands, playcard, drawACardIfNeeded, findFirstTurnPlayer } from '../game/rules.js';
+import { createEmptyGame, createPlayer, createGameWithPlayers } from './utils/testHelpers.js';
 
 describe('shuffleDeck', () => {
   test('should shuffle the deck without changing its length or elements', () => {
     const mockGameState = {
-      pullDeck: ['A', 'B', 'C', 'D', 'E'],
-      players: [],
-      playDeck: [],
-      currentPlayerId: 'p1'
+      ...createEmptyGame('game1'),
+      pullDeck: ['A', 'B', 'C', 'D', 'E']
     };
 
     const originalDeck = [...mockGameState.pullDeck];
@@ -20,10 +19,8 @@ describe('shuffleDeck', () => {
 
   test('should return the updated gameState with shuffled pullDeck', () => {
     const mockGameState = {
-      pullDeck: ['A', 'B'],
-      players: [],
-      playDeck: [],
-      currentPlayerId: 'p1'
+      ...createEmptyGame('game1'),
+      pullDeck: ['A', 'B']
     };
 
     const result = shuffleDeck(mockGameState);
@@ -34,11 +31,9 @@ describe('shuffleDeck', () => {
 
   test('should not modify the original gameState', () => {
     const mockGameState = {
+      ...createEmptyGame('game1'),
       pullDeck: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-      players: [{ id: "p1", hand: [] },
-      { id: "p2", hand: [] }],
-      playDeck: [],
-      currentPlayerId: 'p1'
+      players: [createPlayer('p1'), createPlayer('p2')]
     };
     const originalGameState = mockGameState;
     shuffleDeck(mockGameState);
@@ -50,13 +45,12 @@ describe('shuffleDeck', () => {
 
 describe('dealHands', () => {
   test('should deal 5 cards to 2 player from the pullDeck', () => {
-    const mockGameState = {
-      pullDeck: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-      players: [{ id: "p1", hand: [] },
-      { id: "p2", hand: [] }],
-      playDeck: [],
-      currentPlayerId: 'p1'
-    };
+    const mockGameState = createGameWithPlayers('game1', [
+      createPlayer('p1'),
+      createPlayer('p2')
+    ]);
+    mockGameState.pullDeck = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    
     const result = dealHands(mockGameState);
 
     expect(result.players[0].hand).toHaveLength(5);
@@ -65,14 +59,13 @@ describe('dealHands', () => {
   });
 
   test('should deal 5 cards to 3 player from the pullDeck', () => {
-    const mockGameState = {
-      pullDeck: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'],
-      players: [{ id: "p1", hand: [] },
-      { id: "p2", hand: [] },
-      { id: "p3", hand: [] }],
-      playDeck: [],
-      currentPlayerId: 'p1'
-    };
+    const mockGameState = createGameWithPlayers('game1', [
+      createPlayer('p1'),
+      createPlayer('p2'),
+      createPlayer('p3')
+    ]);
+    mockGameState.pullDeck = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'];
+    
     const result = dealHands(mockGameState);
 
     expect(result.players[0].hand).toHaveLength(5);
@@ -82,13 +75,12 @@ describe('dealHands', () => {
   });
 
   test('should not modify the original gameState', () => {
-    const mockGameState = {
-      pullDeck: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-      players: [{ id: "p1", hand: [] },
-      { id: "p2", hand: [] }],
-      playDeck: [],
-      currentPlayerId: 'p1'
-    };
+    const mockGameState = createGameWithPlayers('game1', [
+      createPlayer('p1'),
+      createPlayer('p2')
+    ]);
+    mockGameState.pullDeck = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    
     const originalGameState = mockGameState;
     dealHands(mockGameState);
     expect(mockGameState).toEqual(originalGameState);
@@ -181,13 +173,12 @@ describe('playcard', () => {
   });
 
   test('should not modify the original gameState', () => {
-    const mockGameState = {
-      pullDeck: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-      players: [{ id: "p1", hand: [] },
-      { id: "p2", hand: [] }],
-      playDeck: [],
-      currentPlayerId: 'p1'
-    };
+    const mockGameState = createGameWithPlayers('game1', [
+      createPlayer('p1'),
+      createPlayer('p2')
+    ]);
+    mockGameState.pullDeck = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    
     const originalGameState = mockGameState;
     playcard(mockGameState, 'p1', ['3S']);
     expect(mockGameState).toEqual(originalGameState);

@@ -1,17 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { registerChatSocket } from '../sockets/chat.socket.js';
+import { createBasicSocketMocks, getSocketCallback, getEmitCall } from './utils/testHelpers.js';
 
 describe('Chat Socket Events', () => {
     let io, socket;
 
     beforeEach(() => {
-        io = {
-            to: vi.fn().mockReturnThis(),
-            emit: vi.fn()
-        };
-        socket = {
-            on: vi.fn()
-        };
+        const mocks = createBasicSocketMocks();
+        io = mocks.io;
+        socket = mocks.socket;
+    });
+
+    it('should register chat:message event listener', () => {
+        registerChatSocket(io, socket);
+
+        expect(socket.on).toHaveBeenCalledWith('chat:message', expect.any(Function));
     });
 
     it('should handle chat:message event and emit to lobby', () => {
@@ -21,7 +24,7 @@ describe('Chat Socket Events', () => {
 
         registerChatSocket(io, socket);
 
-        const chatCallback = socket.on.mock.calls.find(call => call[0] === 'chat:message')[1];
+        const chatCallback = getSocketCallback(socket, 'chat:message');
         chatCallback({ lobbyId, userName, message });
 
         expect(io.to).toHaveBeenCalledWith(lobbyId);
@@ -38,11 +41,11 @@ describe('Chat Socket Events', () => {
 
         registerChatSocket(io, socket);
 
-        const chatCallback = socket.on.mock.calls.find(call => call[0] === 'chat:message')[1];
+        const chatCallback = getSocketCallback(socket, 'chat:message');
         chatCallback({ lobbyId, userName, message });
 
-        const emitCall = io.emit.mock.calls[0];
-        expect(emitCall[0]).toBe('chat:message');
+        const emitCall = getEmitCall(io, 'chat:message');
+        expect(emitCall).toBeDefined();
         expect(emitCall[1]).toEqual({
             userName,
             message
@@ -51,7 +54,7 @@ describe('Chat Socket Events', () => {
 
     it('should handle multiple chat messages independently', () => {
         registerChatSocket(io, socket);
-        const chatCallback = socket.on.mock.calls.find(call => call[0] === 'chat:message')[1];
+        const chatCallback = getSocketCallback(socket, 'chat:message');
 
         const message1 = { lobbyId: 'lobby1', userName: 'User1', message: 'First' };
         const message2 = { lobbyId: 'lobby2', userName: 'User2', message: 'Second' };
@@ -62,11 +65,5 @@ describe('Chat Socket Events', () => {
         expect(io.to).toHaveBeenCalledTimes(2);
         expect(io.to).toHaveBeenNthCalledWith(1, 'lobby1');
         expect(io.to).toHaveBeenNthCalledWith(2, 'lobby2');
-    });
-
-    it('should register chat:message event listener', () => {
-        registerChatSocket(io, socket);
-
-        expect(socket.on).toHaveBeenCalledWith('chat:message', expect.any(Function));
     });
 });

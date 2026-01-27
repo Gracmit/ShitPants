@@ -3,6 +3,7 @@ import { registerGameSocket } from '../sockets/game.socket.js';
 import { gameStore } from '../stores/game.stores.js';
 import setup from '../game/setup.js';
 import { initializeGame, playcard } from '../game/rules.js';
+import { createGameSocketMocks, getSocketCallback } from './utils/testHelpers.js';
 
 // Mock the modules
 vi.mock('../stores/game.stores.js');
@@ -13,15 +14,9 @@ describe('Game Socket Events', () => {
     let io, socket;
 
     beforeEach(() => {
-        io = {
-            to: vi.fn().mockReturnThis(),
-            emit: vi.fn()
-        };
-        socket = {
-            join: vi.fn(),
-            leave: vi.fn(),
-            on: vi.fn()
-        };
+        const mocks = createGameSocketMocks('socket1');
+        io = mocks.io;
+        socket = mocks.socket;
         gameStore.get.mockClear();
         gameStore.update.mockClear();
         setup.addPlayerToGame.mockClear();
@@ -40,7 +35,7 @@ describe('Game Socket Events', () => {
 
         registerGameSocket(io, socket);
 
-        const playCallback = socket.on.mock.calls.find(call => call[0] === 'game:playCard')[1];
+        const playCallback = getSocketCallback(socket, 'game:playCard');
         playCallback({ gameId, playerId, cards });
 
         expect(gameStore.get).toHaveBeenCalledWith(gameId);

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { registerDisconnectSocket } from '../sockets/disconnect.socket.js';
 import { gameStore } from '../stores/game.stores.js';
 import setup from '../game/setup.js';
+import { createDisconnectSocketMocks, getSocketCallback, getEmitCall } from './utils/testHelpers.js';
 
 vi.mock('../stores/game.stores.js');
 vi.mock('../game/setup.js');
@@ -10,16 +11,9 @@ describe('Disconnect Socket Events', () => {
     let io, socket;
 
     beforeEach(() => {
-        io = {
-            to: vi.fn().mockReturnThis(),
-            emit: vi.fn()
-        };
-        socket = {
-            on: vi.fn(),
-            leave: vi.fn(),
-            id: 'socket123',
-            userName: 'Player1'
-        };
+        const mocks = createDisconnectSocketMocks('socket123', 'Player1');
+        io = mocks.io;
+        socket = mocks.socket;
         gameStore.getWithPlayer.mockClear();
         gameStore.update.mockClear();
         gameStore.remove.mockClear();
@@ -37,7 +31,7 @@ describe('Disconnect Socket Events', () => {
         gameStore.getWithPlayer.mockReturnValue(null);
 
         registerDisconnectSocket(io, socket);
-        const disconnectCallback = socket.on.mock.calls.find(call => call[0] === 'disconnect')[1];
+        const disconnectCallback = getSocketCallback(socket, 'disconnect');
         disconnectCallback();
 
         expect(socket.leave).not.toHaveBeenCalled();
@@ -56,7 +50,7 @@ describe('Disconnect Socket Events', () => {
         setup.removePlayerFromGame.mockReturnValue(updatedGame);
 
         registerDisconnectSocket(io, socket);
-        const disconnectCallback = socket.on.mock.calls.find(call => call[0] === 'disconnect')[1];
+        const disconnectCallback = getSocketCallback(socket, 'disconnect');
         disconnectCallback();
 
         expect(socket.leave).toHaveBeenCalledWith(gameId);
@@ -79,13 +73,13 @@ describe('Disconnect Socket Events', () => {
         setup.removePlayerFromGame.mockReturnValue(updatedGame);
 
         registerDisconnectSocket(io, socket);
-        const disconnectCallback = socket.on.mock.calls.find(call => call[0] === 'disconnect')[1];
+        const disconnectCallback = getSocketCallback(socket, 'disconnect');
         disconnectCallback();
 
         expect(socket.leave).toHaveBeenCalledWith(gameId);
         expect(gameStore.update).toHaveBeenCalledWith(gameId, updatedGame);
         
-        const systemMessageCall = io.emit.mock.calls.find(call => call[0] === 'chat:message');
+        const systemMessageCall = getEmitCall(io, 'chat:message');
         expect(systemMessageCall).toBeDefined();
         expect(systemMessageCall[1]).toEqual({
             userName: 'System',
@@ -108,10 +102,10 @@ describe('Disconnect Socket Events', () => {
         setup.removePlayerFromGame.mockReturnValue(updatedGame);
 
         registerDisconnectSocket(io, socket);
-        const disconnectCallback = socket.on.mock.calls.find(call => call[0] === 'disconnect')[1];
+        const disconnectCallback = getSocketCallback(socket, 'disconnect');
         disconnectCallback();
 
-        const lobbyUpdatedCall = io.emit.mock.calls.find(call => call[0] === 'lobby:updated');
+        const lobbyUpdatedCall = getEmitCall(io, 'lobby:updated');
         expect(lobbyUpdatedCall).toBeDefined();
         expect(lobbyUpdatedCall[1]).toEqual(updatedGame);
     });
@@ -130,7 +124,7 @@ describe('Disconnect Socket Events', () => {
         socket.userName = undefined;
 
         registerDisconnectSocket(io, socket);
-        const disconnectCallback = socket.on.mock.calls.find(call => call[0] === 'disconnect')[1];
+        const disconnectCallback = getSocketCallback(socket, 'disconnect');
         
         expect(() => disconnectCallback()).not.toThrow();
     });

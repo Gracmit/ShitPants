@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { registerGameSocket } from '../sockets/game.socket.js';
 import { gameStore } from '../stores/game.stores.js';
 import { playcard } from '../game/rules.js';
+import { createGameSocketMocks, getSocketCallback, getEmitCall } from './utils/testHelpers.js';
 
 vi.mock('../stores/game.stores.js');
 vi.mock('../game/rules.js');
@@ -10,14 +11,9 @@ describe('Game Socket Events', () => {
     let io, socket;
 
     beforeEach(() => {
-        io = {
-            to: vi.fn().mockReturnThis(),
-            emit: vi.fn()
-        };
-        socket = {
-            on: vi.fn(),
-            id: 'socket123'
-        };
+        const mocks = createGameSocketMocks('socket123');
+        io = mocks.io;
+        socket = mocks.socket;
         gameStore.get.mockClear();
         gameStore.update.mockClear();
         playcard.mockClear();
@@ -41,7 +37,7 @@ describe('Game Socket Events', () => {
         playcard.mockReturnValue(updatedGame);
 
         registerGameSocket(io, socket);
-        const playCardCallback = socket.on.mock.calls.find(call => call[0] === 'game:playCard')[1];
+        const playCardCallback = getSocketCallback(socket, 'game:playCard');
         playCardCallback({ gameId, playerId, cards });
 
         expect(gameStore.get).toHaveBeenCalledWith(gameId);
@@ -61,7 +57,7 @@ describe('Game Socket Events', () => {
         playcard.mockReturnValue(null);
 
         registerGameSocket(io, socket);
-        const playCardCallback = socket.on.mock.calls.find(call => call[0] === 'game:playCard')[1];
+        const playCardCallback = getSocketCallback(socket, 'game:playCard');
         playCardCallback({ gameId, playerId, cards });
 
         expect(io.to).toHaveBeenCalledWith(socket.id);
@@ -78,7 +74,7 @@ describe('Game Socket Events', () => {
         playcard.mockReturnValue(null);
 
         registerGameSocket(io, socket);
-        const playCardCallback = socket.on.mock.calls.find(call => call[0] === 'game:playCard')[1];
+        const playCardCallback = getSocketCallback(socket, 'game:playCard');
         playCardCallback({ gameId, playerId, cards });
 
         expect(gameStore.update).not.toHaveBeenCalled();
@@ -92,7 +88,7 @@ describe('Game Socket Events', () => {
         gameStore.get.mockReturnValue(null);
 
         registerGameSocket(io, socket);
-        const playCardCallback = socket.on.mock.calls.find(call => call[0] === 'game:playCard')[1];
+        const playCardCallback = getSocketCallback(socket, 'game:playCard');
         playCardCallback({ gameId, playerId, cards });
 
         expect(playcard).not.toHaveBeenCalled();
@@ -110,7 +106,7 @@ describe('Game Socket Events', () => {
         playcard.mockReturnValueOnce(updatedGame1).mockReturnValueOnce(updatedGame2);
 
         registerGameSocket(io, socket);
-        const playCardCallback = socket.on.mock.calls.find(call => call[0] === 'game:playCard')[1];
+        const playCardCallback = getSocketCallback(socket, 'game:playCard');
 
         playCardCallback({ gameId, playerId, cards: ['AS'] });
         playCardCallback({ gameId, playerId, cards: ['KH'] });
@@ -130,7 +126,7 @@ describe('Game Socket Events', () => {
         playcard.mockReturnValue(updatedGame);
 
         registerGameSocket(io, socket);
-        const playCardCallback = socket.on.mock.calls.find(call => call[0] === 'game:playCard')[1];
+        const playCardCallback = getSocketCallback(socket, 'game:playCard');
         playCardCallback({ gameId, playerId, cards });
 
         expect(playcard).toHaveBeenCalledWith(game, playerId, cards);

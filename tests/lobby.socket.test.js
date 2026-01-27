@@ -2,6 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { registerLobbySocket } from '../sockets/lobby.socket.js';
 import { gameStore } from '../stores/game.stores.js';
 import setup from '../game/setup.js';
+import { 
+    createEmptyGame, 
+    createPlayer, 
+    createGameWithPlayers, 
+    createGameForStart,
+    getSocketCallback,
+    getEmitCall
+} from './utils/testHelpers.js';
 
 vi.mock('../stores/game.stores.js');
 vi.mock('../game/setup.js');
@@ -55,14 +63,14 @@ describe('Lobby Socket Events', () => {
         it('should add player to lobby when joining', () => {
             const lobbyId = 'lobby123';
             const userName = 'Player1';
-            const game = { id: lobbyId, players: [] };
-            const updatedGame = { id: lobbyId, players: [{ userName }] };
+            const game = createEmptyGame(lobbyId);
+            const updatedGame = createGameWithPlayers(lobbyId, [createPlayer('p1', userName)]);
 
             gameStore.get.mockReturnValue(game);
             setup.addPlayerToGame.mockReturnValue(updatedGame);
 
             registerLobbySocket(io, socket);
-            const joinCallback = socket.on.mock.calls.find(call => call[0] === 'joinLobby')[1];
+            const joinCallback = getSocketCallback(socket, 'joinLobby');
             joinCallback({ lobbyId, userName });
 
             expect(socket.join).toHaveBeenCalledWith(lobbyId);
@@ -74,17 +82,17 @@ describe('Lobby Socket Events', () => {
         it('should emit lobby:updated event when player joins', () => {
             const lobbyId = 'lobby123';
             const userName = 'Player1';
-            const game = { id: lobbyId, players: [] };
-            const updatedGame = { id: lobbyId, players: [{ userName }] };
+            const game = createEmptyGame(lobbyId);
+            const updatedGame = createGameWithPlayers(lobbyId, [createPlayer('p1', userName)]);
 
             gameStore.get.mockReturnValue(game);
             setup.addPlayerToGame.mockReturnValue(updatedGame);
 
             registerLobbySocket(io, socket);
-            const joinCallback = socket.on.mock.calls.find(call => call[0] === 'joinLobby')[1];
+            const joinCallback = getSocketCallback(socket, 'joinLobby');
             joinCallback({ lobbyId, userName });
 
-            const lobbyUpdatedCall = io.emit.mock.calls.find(call => call[0] === 'lobby:updated');
+            const lobbyUpdatedCall = getEmitCall(io, 'lobby:updated');
             expect(lobbyUpdatedCall).toBeDefined();
             expect(lobbyUpdatedCall[1]).toEqual(updatedGame);
         });
@@ -92,17 +100,17 @@ describe('Lobby Socket Events', () => {
         it('should emit system message when player joins', () => {
             const lobbyId = 'lobby123';
             const userName = 'Player1';
-            const game = { id: lobbyId, players: [] };
-            const updatedGame = { id: lobbyId, players: [{ userName }] };
+            const game = createEmptyGame(lobbyId);
+            const updatedGame = createGameWithPlayers(lobbyId, [createPlayer('p1', userName)]);
 
             gameStore.get.mockReturnValue(game);
             setup.addPlayerToGame.mockReturnValue(updatedGame);
 
             registerLobbySocket(io, socket);
-            const joinCallback = socket.on.mock.calls.find(call => call[0] === 'joinLobby')[1];
+            const joinCallback = getSocketCallback(socket, 'joinLobby');
             joinCallback({ lobbyId, userName });
 
-            const chatMessageCall = io.emit.mock.calls.find(call => call[0] === 'chat:message');
+            const chatMessageCall = getEmitCall(io, 'chat:message');
             expect(chatMessageCall).toBeDefined();
             expect(chatMessageCall[1]).toEqual({
                 userName: 'System',
@@ -115,14 +123,14 @@ describe('Lobby Socket Events', () => {
         it('should remove player from lobby', () => {
             const lobbyId = 'lobby123';
             const userName = 'Player1';
-            const game = { id: lobbyId, players: [{ userName }] };
-            const updatedGame = { id: lobbyId, players: [] };
+            const game = createGameWithPlayers(lobbyId, [createPlayer('p1', userName)]);
+            const updatedGame = createEmptyGame(lobbyId);
 
             gameStore.get.mockReturnValue(game);
             setup.removePlayerFromGame.mockReturnValue(updatedGame);
 
             registerLobbySocket(io, socket);
-            const leaveCallback = socket.on.mock.calls.find(call => call[0] === 'leaveLobby')[1];
+            const leaveCallback = getSocketCallback(socket, 'leaveLobby');
             leaveCallback({ lobbyId, userName });
 
             expect(socket.leave).toHaveBeenCalledWith(lobbyId);
@@ -132,14 +140,14 @@ describe('Lobby Socket Events', () => {
         it('should delete game if all players leave', () => {
             const lobbyId = 'lobby123';
             const userName = 'Player1';
-            const game = { id: lobbyId, players: [{ userName }] };
-            const updatedGame = { id: lobbyId, players: [] };
+            const game = createGameWithPlayers(lobbyId, [createPlayer('p1', userName)]);
+            const updatedGame = createEmptyGame(lobbyId);
 
             gameStore.get.mockReturnValue(game);
             setup.removePlayerFromGame.mockReturnValue(updatedGame);
 
             registerLobbySocket(io, socket);
-            const leaveCallback = socket.on.mock.calls.find(call => call[0] === 'leaveLobby')[1];
+            const leaveCallback = getSocketCallback(socket, 'leaveLobby');
             leaveCallback({ lobbyId, userName });
 
             expect(gameStore.remove).toHaveBeenCalledWith(lobbyId);
@@ -148,17 +156,20 @@ describe('Lobby Socket Events', () => {
         it('should notify remaining players when one leaves', () => {
             const lobbyId = 'lobby123';
             const userName = 'Player1';
-            const game = { id: lobbyId, players: [{ userName }, { userName: 'Player2' }] };
-            const updatedGame = { id: lobbyId, players: [{ userName: 'Player2' }] };
+            const game = createGameWithPlayers(lobbyId, [
+                createPlayer('p1', userName),
+                createPlayer('p2', 'Player2')
+            ]);
+            const updatedGame = createGameWithPlayers(lobbyId, [createPlayer('p2', 'Player2')]);
 
             gameStore.get.mockReturnValue(game);
             setup.removePlayerFromGame.mockReturnValue(updatedGame);
 
             registerLobbySocket(io, socket);
-            const leaveCallback = socket.on.mock.calls.find(call => call[0] === 'leaveLobby')[1];
+            const leaveCallback = getSocketCallback(socket, 'leaveLobby');
             leaveCallback({ lobbyId, userName });
 
-            const chatMessageCall = io.emit.mock.calls.find(call => call[0] === 'chat:message');
+            const chatMessageCall = getEmitCall(io, 'chat:message');
             expect(chatMessageCall).toBeDefined();
             expect(chatMessageCall[1]).toEqual({
                 userName: 'System',
@@ -173,7 +184,7 @@ describe('Lobby Socket Events', () => {
             gameStore.get.mockReturnValue(null);
 
             registerLobbySocket(io, socket);
-            const leaveCallback = socket.on.mock.calls.find(call => call[0] === 'leaveLobby')[1];
+            const leaveCallback = getSocketCallback(socket, 'leaveLobby');
             leaveCallback({ lobbyId, userName });
 
             expect(setup.removePlayerFromGame).not.toHaveBeenCalled();
@@ -185,14 +196,14 @@ describe('Lobby Socket Events', () => {
         it('should update player ready status', () => {
             const lobbyId = 'lobby123';
             const userName = 'Player1';
-            const game = { id: lobbyId, players: [{ userName, isReady: false }] };
-            const updatedGame = { id: lobbyId, players: [{ userName, isReady: true }] };
+            const game = createGameWithPlayers(lobbyId, [createPlayer('p1', userName, false)]);
+            const updatedGame = createGameWithPlayers(lobbyId, [createPlayer('p1', userName, true)]);
 
             gameStore.get.mockReturnValue(game);
             setup.setPlayerReadyStatus.mockReturnValue(updatedGame);
 
             registerLobbySocket(io, socket);
-            const readyCallback = socket.on.mock.calls.find(call => call[0] === 'player:readyStatus')[1];
+            const readyCallback = getSocketCallback(socket, 'player:readyStatus');
             readyCallback({ lobbyId, userName, isReady: true });
 
             expect(setup.setPlayerReadyStatus).toHaveBeenCalledWith(game, userName, true);
@@ -202,23 +213,17 @@ describe('Lobby Socket Events', () => {
         it('should emit system message when player becomes ready', () => {
             const lobbyId = 'lobby123';
             const userName = 'Player1';
-            const game = {
-                id: lobbyId,
-                players: [{ userName, isReady: false }]
-            };
-            const updatedGame = {
-                id: lobbyId,
-                players: [{ userName, isReady: true }]
-            };
+            const game = createGameWithPlayers(lobbyId, [createPlayer('p1', userName, false)]);
+            const updatedGame = createGameWithPlayers(lobbyId, [createPlayer('p1', userName, true)]);
 
             gameStore.get.mockReturnValue(game);
             setup.setPlayerReadyStatus.mockReturnValue(updatedGame);
 
             registerLobbySocket(io, socket);
-            const readyCallback = socket.on.mock.calls.find(call => call[0] === 'player:readyStatus')[1];
+            const readyCallback = getSocketCallback(socket, 'player:readyStatus');
             readyCallback({ lobbyId, userName, isReady: true });
 
-            const chatMessageCall = io.emit.mock.calls.find(call => call[0] === 'chat:message');
+            const chatMessageCall = getEmitCall(io, 'chat:message');
             expect(chatMessageCall[1]).toEqual({
                 userName: 'System',
                 message: 'Player1 is now ready.'
@@ -228,23 +233,17 @@ describe('Lobby Socket Events', () => {
         it('should emit system message when player becomes not ready', () => {
             const lobbyId = 'lobby123';
             const userName = 'Player1';
-            const game = {
-                id: lobbyId,
-                players: [{ userName, isReady: true }]
-            };
-            const updatedGame = {
-                id: lobbyId,
-                players: [{ userName, isReady: false }]
-            };
+            const game = createGameWithPlayers(lobbyId, [createPlayer('p1', userName, true)]);
+            const updatedGame = createGameWithPlayers(lobbyId, [createPlayer('p1', userName, false)]);
 
             gameStore.get.mockReturnValue(game);
             setup.setPlayerReadyStatus.mockReturnValue(updatedGame);
 
             registerLobbySocket(io, socket);
-            const readyCallback = socket.on.mock.calls.find(call => call[0] === 'player:readyStatus')[1];
+            const readyCallback = getSocketCallback(socket, 'player:readyStatus');
             readyCallback({ lobbyId, userName, isReady: false });
 
-            const chatMessageCall = io.emit.mock.calls.find(call => call[0] === 'chat:message');
+            const chatMessageCall = getEmitCall(io, 'chat:message');
             expect(chatMessageCall[1]).toEqual({
                 userName: 'System',
                 message: 'Player1 is now not ready.'
@@ -254,30 +253,24 @@ describe('Lobby Socket Events', () => {
         it('should start game when all players are ready', () => {
             const lobbyId = 'lobby123';
             const userName = 'Player1';
-            const game = {
-                id: lobbyId,
-                players: [
-                    { userName: 'Player1', isReady: false },
-                    { userName: 'Player2', isReady: true }
-                ]
-            };
-            const updatedGame = {
-                id: lobbyId,
-                players: [
-                    { userName: 'Player1', isReady: true },
-                    { userName: 'Player2', isReady: true }
-                ]
-            };
+            const game = createGameWithPlayers(lobbyId, [
+                createPlayer('p1', 'Player1', false),
+                createPlayer('p2', 'Player2', true)
+            ]);
+            const updatedGame = createGameWithPlayers(lobbyId, [
+                createPlayer('p1', 'Player1', true),
+                createPlayer('p2', 'Player2', true)
+            ]);
 
             gameStore.get.mockReturnValue(game);
             setup.setPlayerReadyStatus.mockReturnValue(updatedGame);
 
             registerLobbySocket(io, socket);
-            const readyCallback = socket.on.mock.calls.find(call => call[0] === 'player:readyStatus')[1];
+            const readyCallback = getSocketCallback(socket, 'player:readyStatus');
             readyCallback({ lobbyId, userName, isReady: true });
 
-            const systemMessageCall = io.emit.mock.calls.find(call =>
-                call[0] === 'chat:message' && call[1].message.includes('starting in 3 seconds')
+            const systemMessageCall = getEmitCall(io, 'chat:message', msg => 
+                msg.message.includes('starting in 3 seconds')
             );
             expect(systemMessageCall).toBeDefined();
         });
@@ -285,71 +278,51 @@ describe('Lobby Socket Events', () => {
         it('should emit game:starting when game is about to start', () => {
             const lobbyId = 'lobby123';
             const userName = 'Player1';
-            const game = {
-                id: lobbyId,
-                players: [
-                    { userName: 'Player1', isReady: false },
-                    { userName: 'Player2', isReady: true }
-                ]
-            };
-            const updatedGame = {
-                id: lobbyId,
-                players: [
-                    { userName: 'Player1', isReady: true },
-                    { userName: 'Player2', isReady: true }
-                ]
-            };
+            const updatedGame = createGameForStart(lobbyId);
 
             gameStore.get.mockReturnValue(updatedGame);
             setup.setPlayerReadyStatus.mockReturnValue(updatedGame);
 
             registerLobbySocket(io, socket);
-            const readyCallback = socket.on.mock.calls.find(call => call[0] === 'player:readyStatus')[1];
+            const readyCallback = getSocketCallback(socket, 'player:readyStatus');
             readyCallback({ lobbyId, userName, isReady: true });
 
             vi.runAllTimers();
 
-            const gameStartingCall = io.emit.mock.calls.find(call => call[0] === 'game:starting');
+            const gameStartingCall = getEmitCall(io, 'game:starting');
             expect(gameStartingCall).toBeDefined();
-            expect(gameStartingCall[1]).toEqual(updatedGame);
+            expect(gameStartingCall[1].id).toEqual(updatedGame.id);
+            expect(gameStartingCall[1].players.length).toEqual(updatedGame.players.length);
+            expect(gameStartingCall[1].currentPlayerId).toBeDefined();
         });
 
         it('should cancel game start if not all players remain ready', () => {
             const lobbyId = 'lobby123';
             const userName = 'Player1';
-            const game = {
-                id: lobbyId,
-                players: [
-                    { userName: 'Player1', isReady: false },
-                    { userName: 'Player2', isReady: true }
-                ]
-            };
-            const updatedGame = {
-                id: lobbyId,
-                players: [
-                    { userName: 'Player1', isReady: true },
-                    { userName: 'Player2', isReady: true }
-                ]
-            };
-            const gameAfterTimeout = {
-                id: lobbyId,
-                players: [
-                    { userName: 'Player1', isReady: true },
-                    { userName: 'Player2', isReady: false }
-                ]
-            };
+            const game = createGameWithPlayers(lobbyId, [
+                createPlayer('p1', 'Player1', false),
+                createPlayer('p2', 'Player2', true)
+            ]);
+            const updatedGame = createGameWithPlayers(lobbyId, [
+                createPlayer('p1', 'Player1', true),
+                createPlayer('p2', 'Player2', true)
+            ]);
+            const gameAfterTimeout = createGameWithPlayers(lobbyId, [
+                createPlayer('p1', 'Player1', true),
+                createPlayer('p2', 'Player2', false)
+            ]);
 
             gameStore.get.mockReturnValueOnce(game).mockReturnValueOnce(gameAfterTimeout);
             setup.setPlayerReadyStatus.mockReturnValue(updatedGame);
 
             registerLobbySocket(io, socket);
-            const readyCallback = socket.on.mock.calls.find(call => call[0] === 'player:readyStatus')[1];
+            const readyCallback = getSocketCallback(socket, 'player:readyStatus');
             readyCallback({ lobbyId, userName, isReady: true });
 
             vi.runAllTimers();
 
-            const cancelMessageCall = io.emit.mock.calls.find(call =>
-                call[0] === 'chat:message' && call[1].message.includes('Not all players are ready')
+            const cancelMessageCall = getEmitCall(io, 'chat:message', msg =>
+                msg.message.includes('Not all players are ready')
             );
             expect(cancelMessageCall).toBeDefined();
         });

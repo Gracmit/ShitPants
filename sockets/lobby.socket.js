@@ -1,5 +1,6 @@
 import { gameStore } from "../stores/game.stores.js";
 import setup from "../game/setup.js";
+import { initializeGame } from "../game/rules.js";
 
 export const registerLobbySocket = (io, socket) => {
     socket.on("joinLobby", (data) => {
@@ -45,7 +46,8 @@ export const registerLobbySocket = (io, socket) => {
             });
             setTimeout(() => {
                 if(gameStore.get(data.lobbyId).players.every(p => p.isReady)) {
-                    io.to(data.lobbyId).emit("game:starting", updatedGame);
+                    const initializedGame = initializeGame(updatedGame);
+                    io.to(data.lobbyId).emit("game:starting", initializedGame);
                     return;
                 }
                 io.to(data.lobbyId).emit("chat:message", {
