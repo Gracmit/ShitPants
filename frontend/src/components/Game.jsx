@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import socket from '../services/socket.js';
 import './Game.css';
+import { pickUpPlayDeck } from '../../../game/rules.js';
 const Game = ({ lobbyInfo, userName }) => {
   const [gameState, setGameState] = useState(lobbyInfo);
   const [playerIndex, setPlayerIndex] = useState(gameState.players.findIndex(player => player.id === userName));
@@ -49,6 +50,13 @@ const Game = ({ lobbyInfo, userName }) => {
     setSelectedCards([]);
   };
 
+  const pickUpPlayDeck = () => {
+    socket.emit("game:pickUpPlayDeck", {
+      gameId: gameState.id,
+      playerId: userName
+    });
+  };
+
   return (
     <div className="GameArea">
       <h3>{gameState.currentPlayerId}'s turn</h3>
@@ -83,6 +91,7 @@ const Game = ({ lobbyInfo, userName }) => {
         ))}
       </div>
       <button className="PlayCardButton" onClick={playcards}>Play Selected Cards</button>
+      <button className="PickUpPlayDeckButton" onClick={pickUpPlayDeck}>Pick Up Play Deck</button>
     </div>
   );
 }
