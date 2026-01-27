@@ -261,6 +261,70 @@ describe('playcard', () => {
     expect(result.players[0].hand).toEqual(['3S', '4S']);
     expect(result.currentPlayerId).toBe('p1');
   });
+
+  test('should not collapse playDeck when 2 is played', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '4S', '2S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['QD'],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+    const result = playcard(mockGameState, 'p1', ['2S']);
+    expect(result.playDeck).toEqual(['QD', '2S']);
+    expect(result.players[0].hand).toEqual(['3S', '4S']);
+    expect(result.currentPlayerId).toBe('p2');
+  });
+
+  test('should not collapse playDeck when 2H is played', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['4D', '2H'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['KD', '3C'],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+    const result = playcard(mockGameState, 'p1', ['2H']);
+    expect(result.playDeck).toEqual(['KD', '3C', '2H']);
+    expect(result.players[0].hand).toEqual(['4D']);
+    expect(result.currentPlayerId).toBe('p2');
+  });
+
+  test('should not collapse playDeck when 2D is played', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '2D'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['6H'],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+    const result = playcard(mockGameState, 'p1', ['2D']);
+    expect(result.playDeck).toEqual(['6H', '2D']);
+    expect(result.players[0].hand).toEqual(['3S']);
+    expect(result.currentPlayerId).toBe('p2');
+  });
+
+  test('should not collapse playDeck when 2C is played', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['4H', '2C'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['8S'],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+    const result = playcard(mockGameState, 'p1', ['2C']);
+    expect(result.playDeck).toEqual(['8S', '2C']);
+    expect(result.players[0].hand).toEqual(['4H']);
+    expect(result.currentPlayerId).toBe('p2');
+  });
 });
 
 describe('drawACardIfNeeded', () => {

@@ -111,6 +111,8 @@ export const playingDeckCollapses = (cardPlayed, playDeck) => {
     if(playDeck.length < 4) return false;
 
     const topCardValue = playDeck[playDeck.length -1].slice(0, -1);
+    if(topCardValue === '2') return false;
+    
     if(playDeck.slice(-4).every(card => card.slice(0, -1) === topCardValue)){
         return true;
     }
