@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { shuffleDeck, dealHands, playcard, drawACardIfNeeded, findFirstTurnPlayer } from '../game/rules.js';
+import { shuffleDeck, dealHands, playcard, drawACardIfNeeded, findFirstTurnPlayer, pickUpPlayDeck } from '../game/rules.js';
 import { createEmptyGame, createPlayer, createGameWithPlayers } from './utils/testHelpers.js';
 
 describe('shuffleDeck', () => {
@@ -332,5 +332,125 @@ describe('findFirstTurnPlayer', () => {
     };
     const result = findFirstTurnPlayer(mockGameState);
     expect(result).toBe('p2');
+  });
+});
+
+describe('pickUpPlayDeck', () => {
+  test('should allow player to pick up playDeck on their turn', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '4S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['6D', '7H', '8C'],
+      pullDeck: ['9S'],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pickUpPlayDeck(mockGameState, 'p1');
+
+    expect(result.players[0].hand).toEqual(['3S', '4S', '6D', '7H', '8C']);
+    expect(result.playDeck).toEqual([]);
+    expect(result.currentPlayerId).toBe('p2');
+  });
+
+  test('should not allow picking up playDeck on wrong turn', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '4S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['6D', '7H', '8C'],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pickUpPlayDeck(mockGameState, 'p2');
+
+    expect(result).toBeUndefined();
+  });
+
+  test('should pass turn to next player after picking up playDeck', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S'] },
+        { id: 'p2', hand: ['5S'] },
+        { id: 'p3', hand: ['6S'] }
+      ],
+      playDeck: ['7D'],
+      pullDeck: [],
+      currentPlayerId: 'p2'
+    };
+
+    const result = pickUpPlayDeck(mockGameState, 'p2');
+
+    expect(result.currentPlayerId).toBe('p3');
+  });
+
+  test('should pass turn to first player when last player picks up', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['6D', '7H'],
+      pullDeck: [],
+      currentPlayerId: 'p2'
+    };
+
+    const result = pickUpPlayDeck(mockGameState, 'p2');
+
+    expect(result.currentPlayerId).toBe('p1');
+  });
+
+  test('should add all playDeck cards to player\'s hand', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['2S'] },
+        { id: 'p2', hand: ['3S'] }
+      ],
+      playDeck: ['4D', '5H', '6C', '7S', '8D'],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pickUpPlayDeck(mockGameState, 'p1');
+
+    expect(result.players[0].hand).toHaveLength(6);
+    expect(result.players[0].hand).toEqual(['2S', '4D', '5H', '6C', '7S', '8D']);
+  });
+
+  test('should not modify the original gameState', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '4S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['6D', '7H', '8C'],
+      pullDeck: ['9S'],
+      currentPlayerId: 'p1'
+    };
+
+    const originalGameState = mockGameState;
+    pickUpPlayDeck(mockGameState, 'p1');
+    expect(mockGameState).toEqual(originalGameState);
+  });
+
+  test('should handle empty playDeck', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '4S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: [],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pickUpPlayDeck(mockGameState, 'p1');
+
+    expect(result.players[0].hand).toEqual(['3S', '4S']);
+    expect(result.playDeck).toEqual([]);
+    expect(result.currentPlayerId).toBe('p2');
   });
 });

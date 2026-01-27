@@ -77,6 +77,23 @@ const getNextPlayerId = (gameState, playerId) => {
     return gameState.players[nextIndex].id;
 }
 
+export const pickUpPlayDeck = (gameState, playerId) => {
+    if(!isPlayerTurn(gameState.currentPlayerId, playerId)) return
+
+    let players = gameState.players.slice();
+    let playDeck = gameState.playDeck.slice();
+    let pullDeck = gameState.pullDeck.slice();
+
+    let player = players.find(player => player.id === playerId);
+    playDeck.forEach(card => {
+        player.hand.push(card);
+    });
+
+    let nextPlayerId = getNextPlayerId(gameState, playerId);
+
+    return {...gameState, players: players, playDeck: [], pullDeck: pullDeck, currentPlayerId: nextPlayerId};
+}
+
 export const drawACardIfNeeded = (player, pullDeck) => {
     if (pullDeck.length <= 0) return;
 
