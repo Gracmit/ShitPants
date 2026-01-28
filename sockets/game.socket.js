@@ -8,6 +8,10 @@ export const registerGameSocket = (io, socket) => {
         const game = gameStore.get(gameId);
         if (game) {
             const updatedGame = playcard(game, playerId, cards);
+            if(updatedGame.winnerId){
+                io.to(gameId).emit("game:ended", { updatedGame, winnerId: updatedGame.winnerId } );
+            }
+
             if (updatedGame) {
                 gameStore.update(gameId, updatedGame);
                 io.to(gameId).emit("game:updated", updatedGame);

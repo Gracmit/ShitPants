@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import socket from '../services/socket.js';
 import './Game.css';
-import { pickUpPlayDeck } from '../../../game/rules.js';
-const Game = ({ lobbyInfo, userName }) => {
+
+const Game = ({ lobbyInfo, userName, goToMainMenu }) => {
   const [gameState, setGameState] = useState(lobbyInfo);
   const [playerIndex, setPlayerIndex] = useState(gameState.players.findIndex(player => player.id === userName));
   const [selectedCards, setSelectedCards] = useState([]);
+  const [winner, setWinner] = useState(null);
 
   useEffect(() => {
     socket.on("game:updated", (updatedGameState) => {
@@ -16,9 +17,16 @@ const Game = ({ lobbyInfo, userName }) => {
     socket.on("game:error", (error) => {
       alert(error.message);
     });
+
+    socket.on("game:ended", ({ updatedGame, winnerId }) => {
+      setGameState(updatedGame);
+      setWinner(winnerId);
+    });
+
     return () => {
       socket.off("game:stateUpdate");
       socket.off("game:error");
+      socket.off("game:ended");
     };
   }, []);
 
@@ -57,41 +65,53 @@ const Game = ({ lobbyInfo, userName }) => {
     });
   };
 
+
   return (
-    <div className="GameArea">
-      <h3>{gameState.currentPlayerId}'s turn</h3>
-      <div className='EnemyPlayersArea'>
-        {gameState.players.filter((_, index) => index !== playerIndex).map((player, index) => (
-          <div key={player.id} className="EnemyPlayerCard">
-            <h3>{player.id}</h3>
-            <p>Cards: {player.hand.length}</p>
-          </div>
-        ))}
-      </div>
+    <div>
+      {winner ? (
+        <div className="WinnerAnnouncement">
+          <h2>Game Over!</h2>
+          <h3>Winner: {winner}</h3>
+          <button onClick={goToMainMenu}>Return to Main Menu</button>
+        </div>
+      ) 
+      : 
+      <div className="GameArea">
+        <h3>{gameState.currentPlayerId}'s turn</h3>
+        <div className='EnemyPlayersArea'>
+          {gameState.players.filter((_, index) => index !== playerIndex).map((player, index) => (
+            <div key={player.id} className="EnemyPlayerCard">
+              <h3>{player.id}</h3>
+              <p>Cards: {player.hand.length}</p>
+            </div>
+          ))}
+        </div>
 
-      <div className="PlayDeckArea">
+        <div className="PlayDeckArea">
 
-        <h2>Play Deck</h2>
-        {gameState.playDeck.length > 0 ? (
-          <div className="PlayDeckCard">
-            <h3>{gameState.playDeck[gameState.playDeck.length - 1]}</h3>
-          </div>
-        ) : (
-          <p>Empty</p>
-        )}
-      </div>
+          <h2>Play Deck</h2>
+          {gameState.playDeck.length > 0 ? (
+            <div className="PlayDeckCard">
+              <h3>{gameState.playDeck[gameState.playDeck.length - 1]}</h3>
+            </div>
+          ) : (
+            <p>Empty</p>
+          )}
+        </div>
 
-      <div className="PlayerCardArea">
-        {gameState.players[playerIndex].hand.map(card => (
-          <div key={card} 
-            className={`PlayerCard${selectedCards.includes(card) ? "Active" : ""}`} 
-            onClick={selectCard}>
-            <h3>{card}</h3>
-          </div>
-        ))}
+        <div className="PlayerCardArea">
+          {gameState.players[playerIndex].hand.map(card => (
+            <div key={card}
+              className={`PlayerCard${selectedCards.includes(card) ? "Active" : ""}`}
+              onClick={selectCard}>
+              <h3>{card}</h3>
+            </div>
+          ))}
+        </div>
+        <button className="PlayCardButton" onClick={playcards}>Play Selected Cards</button>
+        <button className="PickUpPlayDeckButton" onClick={pickUpPlayDeck}>Pick Up Play Deck</button>
       </div>
-      <button className="PlayCardButton" onClick={playcards}>Play Selected Cards</button>
-      <button className="PickUpPlayDeckButton" onClick={pickUpPlayDeck}>Pick Up Play Deck</button>
+      }
     </div>
   );
 }

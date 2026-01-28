@@ -51,6 +51,10 @@ export const playcard = (gameState, playerId, cards) => {
         return{...gameState, players: players, playDeck: [], pullDeck: pullDeck, currentPlayerId: playerId};
     }
 
+    if(player.hand.length === 0){
+        return{...gameState, players: players, playDeck: playDeck, pullDeck: pullDeck, currentPlayerId: null, winnerId: playerId};
+    }
+
     let nextPlayerId = getNextPlayerId(gameState, playerId);
     return {...gameState, players: players, playDeck: playDeck, pullDeck: pullDeck, currentPlayerId: nextPlayerId};
 }
@@ -112,7 +116,7 @@ export const playingDeckCollapses = (cardPlayed, playDeck) => {
 
     const topCardValue = playDeck[playDeck.length -1].slice(0, -1);
     if(topCardValue === '2') return false;
-    
+
     if(playDeck.slice(-4).every(card => card.slice(0, -1) === topCardValue)){
         return true;
     }

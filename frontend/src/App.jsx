@@ -38,6 +38,7 @@ function App() {
 
   const goToMainMenu = () => {
     setAppState('MAIN_MENU')
+    setLobbyInfo(null)
   }
 
   const setNewUserName = (name) => {
@@ -56,7 +57,7 @@ function App() {
       {appState === 'CREATE_GAME' && <CreateGame joinLobby={goToLobby} userName={userName} setLobbyInfo={setNewLobbyInfo} mainMenu={goToMainMenu}/>}
       {appState === 'LOBBY' && <Lobby findGame={goToFindGame} goToGame={goToGame} lobbyInfo={lobbyInfo} userName={userName}/>}
       {appState === 'FIND_GAME' && <FindGame joinLobby={goToLobby} mainMenu={goToMainMenu} createGame={goToCreateGame} setLobbyInfo={setNewLobbyInfo}/>}
-      {appState === 'GAME' && <Game lobbyInfo={lobbyInfo} userName={userName} />}
+      {appState === 'GAME' && <Game lobbyInfo={lobbyInfo} userName={userName} goToMainMenu={goToMainMenu}/>}
     </div>
   )
 }
