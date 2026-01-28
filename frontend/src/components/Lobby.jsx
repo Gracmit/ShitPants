@@ -7,7 +7,6 @@ const Lobby = ({ findGame, goToGame, lobbyInfo, userName }) => {
   const [playerReadyStatus, setPlayerReadyStatus] = useState(false);
 
   useEffect(() => {
-    
     socket.on("lobby:updated", (game) => {
         console.log("Lobby updated:", game);
         setPlayers(game.players);

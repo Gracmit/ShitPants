@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import socket from '../services/socket.js';
 import './Game.css';
 
-const Game = ({ lobbyInfo, userName, goToMainMenu }) => {
+const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) => {
   const [gameState, setGameState] = useState(lobbyInfo);
   const [playerIndex, setPlayerIndex] = useState(gameState.players.findIndex(player => player.id === userName));
   const [selectedCards, setSelectedCards] = useState([]);
   const [winner, setWinner] = useState(null);
 
   useEffect(() => {
+    console.log(gameState)
     socket.on("game:updated", (updatedGameState) => {
       console.log("Received game state update:", updatedGameState);
       setGameState(updatedGameState);
@@ -19,11 +20,13 @@ const Game = ({ lobbyInfo, userName, goToMainMenu }) => {
     });
 
     socket.on("game:ended", ({ updatedGame, winnerId }) => {
+      console.log("Game ended. Winner:", winnerId);
       setGameState(updatedGame);
       setWinner(winnerId);
     });
 
     return () => {
+      console.log("Cleaning up game socket listeners");
       socket.off("game:stateUpdate");
       socket.off("game:error");
       socket.off("game:ended");
@@ -73,6 +76,7 @@ const Game = ({ lobbyInfo, userName, goToMainMenu }) => {
           <h2>Game Over!</h2>
           <h3>Winner: {winner}</h3>
           <button onClick={goToMainMenu}>Return to Main Menu</button>
+          <button onClick={() => goToLobby(gameState)}>Return to Lobby</button>
         </div>
       ) 
       : 
@@ -110,6 +114,10 @@ const Game = ({ lobbyInfo, userName, goToMainMenu }) => {
         </div>
         <button className="PlayCardButton" onClick={playcards}>Play Selected Cards</button>
         <button className="PickUpPlayDeckButton" onClick={pickUpPlayDeck}>Pick Up Play Deck</button>
+        <button onClick={() => {
+          socket.emit("debug:win", { gameId: gameState.id, playerId: userName })
+          console.log("Debug: Win Game")
+        }}>Debug: Win Game</button>
       </div>
       }
     </div>

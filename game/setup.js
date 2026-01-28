@@ -9,6 +9,16 @@ const createGame = (gameName, password, numPlayers, playerName) => {
     return game;
 }
 
+const recreateGame = (existingGame) => {
+    const recreatedGame = {...gameState};
+    recreatedGame.players = existingGame.players.map(player => ({...player, hand: [], isReady: false}));
+    recreatedGame.name = existingGame.name;
+    recreatedGame.password = existingGame.password;
+    recreatedGame.maxPlayers = existingGame.maxPlayers;
+    recreatedGame.id = existingGame.id;
+    return recreatedGame;
+}
+
 const addPlayerToGame = (game, playerId) => {
     if (game.players.find(p => p.id === playerId)) {
         return game;
@@ -33,4 +43,4 @@ const setPlayerReadyStatus = (game, playerId, isReady) => {
     return {...game, players: updatedPlayers};
 }
 
-export default { createGame, addPlayerToGame, removePlayerFromGame, setPlayerReadyStatus };
+export default { createGame, addPlayerToGame, removePlayerFromGame, setPlayerReadyStatus, recreateGame };
