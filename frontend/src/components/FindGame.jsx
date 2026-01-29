@@ -35,9 +35,11 @@ const FindGame = ({ joinLobby, mainMenu, createGame, setLobbyInfo }) => {
         setAvailableGames(games);
       });
     }
-   
+  }
 
-    
+  const updateList = async () => {
+    const games = await gameService.getGames();
+    setAvailableGames(games);
   }
 
   return (
@@ -45,6 +47,7 @@ const FindGame = ({ joinLobby, mainMenu, createGame, setLobbyInfo }) => {
         <h2>Find Game</h2>
         <button onClick={mainMenu}>Back to Main Menu</button>
         <button onClick={createGame}>Create New Game</button>
+        <button onClick={updateList}>Refresh Game List</button>
         <ul>
           {availableGames.map((game) => (
             <li key={game.id}>
