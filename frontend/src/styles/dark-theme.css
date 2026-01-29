@@ -67,6 +67,14 @@ body{
 .PlayerCardActive{transform:scale(1.12);box-shadow:0 6px 18px rgba(0,0,0,0.6);border-color:var(--accent)}
 .PlayCardButton,.PickUpPlayDeckButton{margin-top:12px}
 
+/* Suit coloring */
+.card-value{font-weight:600}
+.suit{margin-left:6px;font-weight:700}
+.suit-S{color:var(--muted)}
+.suit-C{color:var(--muted)}
+.suit-H{color:var(--danger)}
+.suit-D{color:var(--danger)}
+
 /* Forms and lists */
 .form-row{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .list{list-style:none;padding:0;margin:0}

@@ -23,8 +23,12 @@ const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) =>
 
   const selectCard = (event) => {
     if (gameState.currentPlayerId !== userName) return;
-    if (selectedCards.length > 0 && event.target.textContent[0] !== selectedCards[0][0]) return;
-    const card = event.target.textContent;
+    const card = event.currentTarget?.dataset?.card || event.target.textContent;
+    const suit = card.slice(-1).toUpperCase();
+    if (selectedCards.length > 0) {
+      const firstSuit = selectedCards[0].slice(-1).toUpperCase();
+      if (suit !== firstSuit) return;
+    }
     let newSelectedCards = [...selectedCards];
     if (selectedCards.includes(card)) newSelectedCards = selectedCards.filter(c => c !== card);
     else newSelectedCards = [...selectedCards, card];
@@ -42,6 +46,20 @@ const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) =>
   const leaveGame = () => {
     goToMainMenu();
     socket.emit("leaveLobby", { lobbyId: lobbyInfo.id, userName });
+  };
+
+  const formatCard = (code) => {
+    if (!code) return "";
+    const value = code.slice(0, -1);
+    const suit = code.slice(-1).toUpperCase();
+    const suits = { S: '♠', H: '♥', D: '♦', C: '♣' };
+    const emoji = suits[suit] || suit;
+    return (
+      <>
+        <span className="card-value">{value}</span>
+        <span className={`suit suit-${suit}`}> {emoji}</span>
+      </>
+    );
   };
 
   return (
@@ -71,10 +89,10 @@ const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) =>
             <h2>Play Deck</h2>
                 {gameState.playDeck.length > 0 ? (
                   <div className="PlayDeckCard card">
-                    <h3>{gameState.playDeck[gameState.playDeck.length - 1]}</h3>
+                    <h3>{formatCard(gameState.playDeck[gameState.playDeck.length - 1])}</h3>
                     <div className="playdeck-preview">
                       {gameState.playDeck.slice().reverse().map((c, i) => (
-                        <div key={i} className="playdeck-card-item">{c}</div>
+                        <div key={i} className="playdeck-card-item">{formatCard(c)}</div>
                       ))}
                     </div>
                   </div>
@@ -86,9 +104,10 @@ const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) =>
           <div className="PlayerCardArea">
             {gameState.players[playerIndex].hand.map(card => (
               <div key={card}
+                data-card={card}
                 className={`PlayerCard ${selectedCards.includes(card) ? "PlayerCardActive" : ""}`}
                 onClick={selectCard}>
-                <h3>{card}</h3>
+                <h3>{formatCard(card)}</h3>
               </div>
             ))}
           </div>
