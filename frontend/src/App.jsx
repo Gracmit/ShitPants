@@ -16,6 +16,7 @@ function App() {
 
     return () => {
       socket.disconnect()
+      localStorage.removeItem("chatMessages");
     }
   }, [])
 
@@ -34,11 +35,13 @@ function App() {
 
   const goToFindGame = () => {
     setAppState('FIND_GAME')
+    localStorage.removeItem("chatMessages");
   }
 
   const goToMainMenu = () => {
     setAppState('MAIN_MENU')
     setLobbyInfo(null)
+    localStorage.removeItem("chatMessages");
   }
 
   const setNewUserName = (name) => {

@@ -6,8 +6,17 @@ const Chat = ({ lobbyId, userName }) => {
   const [messageInput, setMessageInput] = useState("");
 
   useEffect(() => {
+    const saved = localStorage.getItem("chatMessages");
+    if (saved) {
+      setMessages(JSON.parse(saved));
+    }
+
     socket.on("chat:message", (data) => {
-      setMessages((prev) => [...prev, { user: data.userName, text: data.message }]);
+      setMessages((prev) => {
+        const updated = [...prev, { user: data.userName, text: data.message }];
+        localStorage.setItem("chatMessages", JSON.stringify(updated));
+        return updated;
+      });
     });
 
     return () => {
