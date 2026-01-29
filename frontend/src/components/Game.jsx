@@ -69,11 +69,18 @@ const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) =>
 
           <div className="PlayDeckArea">
             <h2>Play Deck</h2>
-            {gameState.playDeck.length > 0 ? (
-              <div className="PlayDeckCard card">
-                <h3>{gameState.playDeck[gameState.playDeck.length - 1]}</h3>
-              </div>
-            ) : (<p>Empty</p>)}
+                {gameState.playDeck.length > 0 ? (
+                  <div className="PlayDeckCard card">
+                    <h3>{gameState.playDeck[gameState.playDeck.length - 1]}</h3>
+                    <div className="playdeck-preview">
+                      {gameState.playDeck.slice().reverse().map((c, i) => (
+                        <div key={i} className="playdeck-card-item">{c}</div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p>Empty</p>
+                )}
           </div>
 
           <div className="PlayerCardArea">
