@@ -1,5 +1,5 @@
 import { gameStore } from "../stores/game.stores.js";
-import { playcard, pickUpPlayDeck } from "../game/rules.js";
+import { playcard, pickUpPlayDeck, pullFromDeck } from "../game/rules.js";
 import setup from "../game/setup.js";
 
 export const registerGameSocket = (io, socket) => {
@@ -18,7 +18,7 @@ export const registerGameSocket = (io, socket) => {
                     gameStore.update(gameId, recreatedGame);
                     io.to(gameId).emit("game:ended", { recreatedGame, winnerId: winnerId });
                 }
-                
+
                 gameStore.update(gameId, updatedGame);
                 io.to(gameId).emit("game:updated", updatedGame);
             }
@@ -42,6 +42,22 @@ export const registerGameSocket = (io, socket) => {
             }
         }
     });
+
+    socket.on("game:pullFromDeck", (data) => {
+        const { gameId, playerId } = data;
+        const game = gameStore.get(gameId);
+        if (game) {
+            const updatedGame = pullFromDeck(game, playerId);
+            if (updatedGame) {
+                gameStore.update(gameId, updatedGame);
+                io.to(gameId).emit("game:updated", updatedGame);
+            }
+            else {
+                io.to(socket.id).emit("game:error", { message: "Cannot play from deck" });
+            }
+        }
+    });
+
     socket.on("debug:win", (data) => {
         console.log( "Debug win event received with data:", data );
         const { gameId, playerId } = data;

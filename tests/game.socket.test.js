@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { registerGameSocket } from '../sockets/game.socket.js';
 import { gameStore } from '../stores/game.stores.js';
-import { playcard, pickUpPlayDeck } from '../game/rules.js';
+import { playcard, pickUpPlayDeck, pullFromDeck } from '../game/rules.js';
 import { createGameSocketMocks, getSocketCallback, getEmitCall } from './utils/testHelpers.js';
 
 vi.mock('../stores/game.stores.js');
@@ -229,5 +229,106 @@ describe('Game Socket Events', () => {
         pickUpCallback({ gameId, playerId });
 
         expect(pickUpPlayDeck).toHaveBeenCalledWith(game, playerId);
+    });
+
+    it('should register game:pullFromDeck event listener', () => {
+        registerGameSocket(io, socket);
+
+        expect(socket.on).toHaveBeenCalledWith('game:pullFromDeck', expect.any(Function));
+    });
+
+    it('should handle valid pull from deck', () => {
+        const gameId = 'game123';
+        const playerId = 'player1';
+        const game = { 
+            id: gameId, 
+            players: [{ id: playerId, hand: ['3S', '4H'] }],
+            pullDeck: ['5D', '6C', '7H'],
+            currentPlayerId: playerId
+        };
+        const updatedGame = { 
+            ...game, 
+            players: [{ id: playerId, hand: ['3S', '4H', '7H'] }],
+            pullDeck: ['5D', '6C']
+        };
+
+        gameStore.get.mockReturnValue(game);
+        pullFromDeck.mockReturnValue(updatedGame);
+
+        registerGameSocket(io, socket);
+        const pullCallback = getSocketCallback(socket, 'game:pullFromDeck');
+        pullCallback({ gameId, playerId });
+
+        expect(gameStore.get).toHaveBeenCalledWith(gameId);
+        expect(pullFromDeck).toHaveBeenCalledWith(game, playerId);
+        expect(gameStore.update).toHaveBeenCalledWith(gameId, updatedGame);
+        expect(io.to).toHaveBeenCalledWith(gameId);
+        expect(io.emit).toHaveBeenCalledWith('game:updated', updatedGame);
+    });
+
+    it('should emit error on invalid pull from deck', () => {
+        const gameId = 'game123';
+        const playerId = 'player1';
+        const game = { 
+            id: gameId, 
+            players: [{ id: playerId, hand: ['3S', '4H', '5D', '6C', '7H', '8S'] }],
+            pullDeck: [],
+            currentPlayerId: playerId
+        };
+
+        gameStore.get.mockReturnValue(game);
+        pullFromDeck.mockReturnValue(null);
+
+        registerGameSocket(io, socket);
+        const pullCallback = getSocketCallback(socket, 'game:pullFromDeck');
+        pullCallback({ gameId, playerId });
+
+        expect(io.to).toHaveBeenCalledWith(socket.id);
+        expect(io.emit).toHaveBeenCalledWith('game:error', { message: 'Cannot play from deck' });
+    });
+
+    it('should not update game if pullFromDeck returns null', () => {
+        const gameId = 'game123';
+        const playerId = 'player1';
+        const game = { id: gameId, currentPlayerId: 'player2' };
+
+        gameStore.get.mockReturnValue(game);
+        pullFromDeck.mockReturnValue(null);
+
+        registerGameSocket(io, socket);
+        const pullCallback = getSocketCallback(socket, 'game:pullFromDeck');
+        pullCallback({ gameId, playerId });
+
+        expect(gameStore.update).not.toHaveBeenCalled();
+    });
+
+    it('should handle non-existent game gracefully for pull from deck', () => {
+        const gameId = 'nonexistent';
+        const playerId = 'player1';
+
+        gameStore.get.mockReturnValue(null);
+
+        registerGameSocket(io, socket);
+        const pullCallback = getSocketCallback(socket, 'game:pullFromDeck');
+        pullCallback({ gameId, playerId });
+
+        expect(pullFromDeck).not.toHaveBeenCalled();
+        expect(gameStore.update).not.toHaveBeenCalled();
+    });
+
+    it('should pass correct data to pullFromDeck function', () => {
+        const gameId = 'game456';
+        const playerId = 'player2';
+        const game = { id: gameId, currentPlayerId: playerId };
+        const updatedGame = { ...game };
+
+        gameStore.get.mockReturnValue(game);
+        pullFromDeck.mockReturnValue(updatedGame);
+
+        registerGameSocket(io, socket);
+        const pullCallback = getSocketCallback(socket, 'game:pullFromDeck');
+        pullCallback({ gameId, playerId });
+
+        expect(pullFromDeck).toHaveBeenCalledWith(game, playerId);
     });
 });

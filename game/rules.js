@@ -153,3 +153,17 @@ export const initializeGame = (gameState) => {
     let firstPlayerId = findFirstTurnPlayer(dealtGameState);
     return {...dealtGameState, currentPlayerId: firstPlayerId};
 }
+
+export const pullFromDeck = (gameState, playerId) => {
+    if(!isPlayerTurn(gameState.currentPlayerId, playerId)) return
+    if(gameState.pullDeck.length === 0) return
+    
+    let player = players.find(player => player.id === playerId);
+    if(player.hand.length >= 5) return
+    
+    let players = gameState.players.slice();
+    let pullDeck = gameState.pullDeck.slice();
+    
+    player.hand.push(pullDeck.pop());
+    return {...gameState, players: players, pullDeck: pullDeck};
+}   
