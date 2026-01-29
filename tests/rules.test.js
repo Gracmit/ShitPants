@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { shuffleDeck, dealHands, playcard, drawACardIfNeeded, findFirstTurnPlayer, pickUpPlayDeck } from '../game/rules.js';
+import { shuffleDeck, dealHands, playcard, drawACardIfNeeded, findFirstTurnPlayer, pickUpPlayDeck, pullFromDeck } from '../game/rules.js';
 import { createEmptyGame, createPlayer, createGameWithPlayers } from './utils/testHelpers.js';
 
 describe('shuffleDeck', () => {
@@ -160,7 +160,7 @@ describe('playcard', () => {
     const mockGameState = {
       players: [
         { id: 'p1', hand: ['3S'] },
-        { id: 'p2', hand: ['2D'] }
+        { id: 'p2', hand: ['2D', '4H'] }
       ],
       playDeck: ['2S'],
       pullDeck: [],
@@ -201,7 +201,7 @@ describe('playcard', () => {
   test('should allow playing multiple valid cards of the same value', () => {
     const mockGameState = {
       players: [
-        { id: 'p1', hand: ['3S', '3D'] },
+        { id: 'p1', hand: ['3S', '3D', '4C'] },
         { id: 'p2', hand: ['5S'] }
       ],
       playDeck: ['3H'],
@@ -209,7 +209,7 @@ describe('playcard', () => {
       currentPlayerId: 'p1'
     };
     const result = playcard(mockGameState, 'p1', ['3S', '3D']);
-    expect(result.players[0].hand).toEqual([]);
+    expect(result.players[0].hand).toEqual(['4C']);
     expect(result.playDeck).toEqual(['3H', '3S', '3D']);
     expect(result.currentPlayerId).toBe('p2');
   });
@@ -516,5 +516,173 @@ describe('pickUpPlayDeck', () => {
     expect(result.players[0].hand).toEqual(['3S', '4S']);
     expect(result.playDeck).toEqual([]);
     expect(result.currentPlayerId).toBe('p2');
+  });
+});
+
+describe('pullFromDeck', () => {
+  test('should allow player to pull a card from deck on their turn', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S', '4H'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: ['6D'],
+      pullDeck: ['7H', '8C', '9D'],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pullFromDeck(mockGameState, 'p1');
+
+    expect(result.players[0].hand).toEqual(['3S', '4H', '9D']);
+    expect(result.pullDeck).toEqual(['7H', '8C']);
+    expect(result.playDeck).toEqual(['6D']);
+  });
+
+  test('should not allow pulling from deck on wrong turn', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: [],
+      pullDeck: ['7H'],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pullFromDeck(mockGameState, 'p2');
+
+    expect(result).toBeUndefined();
+  });
+
+  test('should not pull from deck if pullDeck is empty', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['3S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: [],
+      pullDeck: [],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pullFromDeck(mockGameState, 'p1');
+
+    expect(result).toBeUndefined();
+  });
+
+  test('should not pull from deck if player hand already has 6 or more cards', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['2S', '3S', '4S', '5S', '6S', '8S', '9S'] },
+        { id: 'p2', hand: ['7S'] }
+      ],
+      playDeck: [],
+      pullDeck: ['8S'],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pullFromDeck(mockGameState, 'p1');
+
+    expect(result).toBeUndefined();
+  });
+
+  test('should not pull from deck if player hand has exactly 6 cards', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['2S', '3S', '4S', '5S', '6S', '8S'] },
+        { id: 'p2', hand: ['7S'] }
+      ],
+      playDeck: [],
+      pullDeck: ['8S', '9S'],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pullFromDeck(mockGameState, 'p1');
+
+    expect(result).toBeUndefined();
+  });
+
+  test('should pull the last card from pullDeck when only one card remains', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['2S', '3S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: [],
+      pullDeck: ['9H'],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pullFromDeck(mockGameState, 'p1');
+
+    expect(result.players[0].hand).toEqual(['2S', '3S', '9H']);
+    expect(result.pullDeck).toEqual([]);
+  });
+
+  test('should not modify the original gameState', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['2S', '3S'] },
+        { id: 'p2', hand: ['5S'] }
+      ],
+      playDeck: [],
+      pullDeck: ['8S', '9S'],
+      currentPlayerId: 'p1'
+    };
+
+    const originalGameState = mockGameState;
+    pullFromDeck(mockGameState, 'p1');
+    expect(mockGameState).toEqual(originalGameState);
+  });
+
+  test('should pull card correctly when player has 4 cards', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['2S', '3S', '4S', '5S'] },
+        { id: 'p2', hand: ['6S'] }
+      ],
+      playDeck: [],
+      pullDeck: ['7H', '8C'],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pullFromDeck(mockGameState, 'p1');
+
+    expect(result.players[0].hand).toHaveLength(5);
+    expect(result.players[0].hand).toEqual(['2S', '3S', '4S', '5S', '8C']);
+    expect(result.pullDeck).toEqual(['7H']);
+  });
+
+  test('should pull card correctly when player has 1 card', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['2S'] },
+        { id: 'p2', hand: ['6S'] }
+      ],
+      playDeck: [],
+      pullDeck: ['3H', '4C', '5D'],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pullFromDeck(mockGameState, 'p1');
+
+    expect(result.players[0].hand).toEqual(['2S', '5D']);
+    expect(result.pullDeck).toEqual(['3H', '4C']);
+  });
+
+  test('should not affect other players hands when pulling', () => {
+    const mockGameState = {
+      players: [
+        { id: 'p1', hand: ['2S'] },
+        { id: 'p2', hand: ['3S', '4S'] }
+      ],
+      playDeck: [],
+      pullDeck: ['5H'],
+      currentPlayerId: 'p1'
+    };
+
+    const result = pullFromDeck(mockGameState, 'p1');
+
+    expect(result.players[1].hand).toEqual(['3S', '4S']);
   });
 });
