@@ -15,7 +15,7 @@ gameRouter.post("/create", (req, res) => {
 });
 
 gameRouter.get("/status/:id", (req, res) => {
-    const game = gameStore.get(req.params.id);
+    const game = gameStore.get(Number(req.params.id));
     if (game) {
         res.json(game);
     } else {

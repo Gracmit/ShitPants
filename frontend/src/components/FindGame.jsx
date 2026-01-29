@@ -12,21 +12,32 @@ const FindGame = ({ joinLobby, mainMenu, createGame, setLobbyInfo }) => {
     }); 
   }, []);
 
-  const handleJoinLobby = (game) => {
-    if(game.players.length >= game.maxPlayers) {
-      alert("Game is full!");
-      return;
-    }
-
-    if(game.password !== "") {
-      const password = prompt("Enter game password:");
-      if(password !== game.password) {
-        alert("Incorrect password!");
+  const handleJoinLobby = async (game) => {
+    try {
+      const gameStatus = await gameService.getGameStatus(game.id);
+      if (gameStatus.players.length >= gameStatus.maxPlayers) {
+        alert("Game is full!");
         return;
       }
+
+      if (game.password !== "") {
+        const password = prompt("Enter game password:");
+        if (password !== game.password) {
+          alert("Incorrect password!");
+          return;
+        }
+      }
+      setLobbyInfo({ id: game.id, name: game.name, password: game.password });
+      joinLobby();
+    } catch (error) {
+      alert("Game not found!");
+      gameService.getGames().then(games => {
+        setAvailableGames(games);
+      });
     }
-    setLobbyInfo({id: game.id, name: game.name, password: game.password});
-    joinLobby();
+   
+
+    
   }
 
   return (
