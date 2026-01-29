@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import socket from '../services/socket.js';
 import './Game.css';
+import Chat from './Chat.jsx';
 
 const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) => {
   const [gameState, setGameState] = useState(lobbyInfo);
@@ -70,7 +71,7 @@ const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) =>
 
 
   return (
-    <div>
+    <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
       {winner ? (
         <div className="WinnerAnnouncement">
           <h2>Game Over!</h2>
@@ -127,6 +128,7 @@ const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) =>
           </button>
         </div>
       }
+      <Chat lobbyId={gameState.id} userName={userName}/>
     </div>
   );
 }
