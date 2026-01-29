@@ -78,47 +78,54 @@ const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) =>
           <button onClick={goToMainMenu}>Return to Main Menu</button>
           <button onClick={() => goToLobby(gameState)}>Return to Lobby</button>
         </div>
-      ) 
-      : 
-      <div className="GameArea">
-        <h3>{gameState.currentPlayerId}'s turn</h3>
-        <div className='EnemyPlayersArea'>
-          {gameState.players.filter((_, index) => index !== playerIndex).map((player, index) => (
-            <div key={player.id} className="EnemyPlayerCard">
-              <h3>{player.id}</h3>
-              <p>Cards: {player.hand.length}</p>
-            </div>
-          ))}
-        </div>
+      )
+        :
+        <div className="GameArea">
+          <h3>{gameState.currentPlayerId}'s turn</h3>
+          <div className='EnemyPlayersArea'>
+            {gameState.players.filter((_, index) => index !== playerIndex).map((player, index) => (
+              <div key={player.id} className="EnemyPlayerCard">
+                <h3>{player.id}</h3>
+                <p>Cards: {player.hand.length}</p>
+              </div>
+            ))}
+          </div>
 
-        <div className="PlayDeckArea">
+          <div className="PlayDeckArea">
 
-          <h2>Play Deck</h2>
-          {gameState.playDeck.length > 0 ? (
-            <div className="PlayDeckCard">
-              <h3>{gameState.playDeck[gameState.playDeck.length - 1]}</h3>
-            </div>
-          ) : (
-            <p>Empty</p>
-          )}
-        </div>
+            <h2>Play Deck</h2>
+            {gameState.playDeck.length > 0 ? (
+              <div className="PlayDeckCard">
+                <h3>{gameState.playDeck[gameState.playDeck.length - 1]}</h3>
+              </div>
+            ) : (
+              <p>Empty</p>
+            )}
+          </div>
 
-        <div className="PlayerCardArea">
-          {gameState.players[playerIndex].hand.map(card => (
-            <div key={card}
-              className={`PlayerCard${selectedCards.includes(card) ? "Active" : ""}`}
-              onClick={selectCard}>
-              <h3>{card}</h3>
-            </div>
-          ))}
+          <div className="PlayerCardArea">
+            {gameState.players[playerIndex].hand.map(card => (
+              <div key={card}
+                className={`PlayerCard${selectedCards.includes(card) ? "Active" : ""}`}
+                onClick={selectCard}>
+                <h3>{card}</h3>
+              </div>
+            ))}
+          </div>
+          <button className="PlayCardButton" onClick={playcards}>Play Selected Cards</button>
+          <button className="PickUpPlayDeckButton" onClick={pickUpPlayDeck}>Pick Up Play Deck</button>
+          <button onClick={() => {
+            socket.emit("game:pullFromDeck", { gameId: gameState.id, playerId: userName })
+          }}>
+            Pull From Deck
+          </button>
+          <button onClick={() => {
+            socket.emit("debug:win", { gameId: gameState.id, playerId: userName })
+            console.log("Debug: Win Game")
+          }}>
+            Debug: Win Game
+          </button>
         </div>
-        <button className="PlayCardButton" onClick={playcards}>Play Selected Cards</button>
-        <button className="PickUpPlayDeckButton" onClick={pickUpPlayDeck}>Pick Up Play Deck</button>
-        <button onClick={() => {
-          socket.emit("debug:win", { gameId: gameState.id, playerId: userName })
-          console.log("Debug: Win Game")
-        }}>Debug: Win Game</button>
-      </div>
       }
     </div>
   );
