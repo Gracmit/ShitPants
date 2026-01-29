@@ -69,6 +69,11 @@ const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) =>
     });
   };
 
+  const leaveGame = () => {
+    goToMainMenu();
+    socket.emit("leaveLobby", { lobbyId: lobbyInfo.id, userName: userName });
+  }
+
 
   return (
     <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
@@ -76,7 +81,7 @@ const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) =>
         <div className="WinnerAnnouncement">
           <h2>Game Over!</h2>
           <h3>Winner: {winner}</h3>
-          <button onClick={goToMainMenu}>Return to Main Menu</button>
+          <button onClick={leaveGame}>Return to Main Menu</button>
           <button onClick={() => goToLobby(gameState)}>Return to Lobby</button>
         </div>
       )
