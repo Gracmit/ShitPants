@@ -110,6 +110,8 @@ export const drawACardIfNeeded = (player, pullDeck) => {
 }
 
 export const playingDeckCollapses = (cardPlayed, playDeck) => {
+    if(playDeck.length === 1 && collapsingCards.includes(cardPlayed)) return false;
+
     if(collapsingCards.includes(cardPlayed)) return true;
 
     if(playDeck.length < 4) return false;
