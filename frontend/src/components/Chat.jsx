@@ -7,9 +7,7 @@ const Chat = ({ lobbyId, userName }) => {
 
   useEffect(() => {
     const saved = localStorage.getItem("chatMessages");
-    if (saved) {
-      setMessages(JSON.parse(saved));
-    }
+    if (saved) setMessages(JSON.parse(saved));
 
     socket.on("chat:message", (data) => {
       setMessages((prev) => {
@@ -19,86 +17,39 @@ const Chat = ({ lobbyId, userName }) => {
       });
     });
 
-    return () => {
-      socket.off("chat:message");
-    };
+    return () => socket.off("chat:message");
   }, []);
 
   const handleSendMessage = () => {
-    if (messageInput.trim()) {
-      socket.emit("chat:message", {
-        lobbyId: lobbyId,
-        userName: userName,
-        message: messageInput,
-      });
-      setMessageInput("");
-    }
+    if (!messageInput.trim()) return;
+    socket.emit("chat:message", { lobbyId, userName, message: messageInput });
+    setMessageInput("");
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSendMessage();
-    }
+    if (e.key === "Enter") handleSendMessage();
   };
 
   return (
-    <div
-      style={{
-        width: "300px",
-        display: "flex",
-        flexDirection: "column",
-        border: "1px solid #ccc",
-        borderRadius: "8px",
-        overflow: "hidden",
-        backgroundColor: "#f9f9f9",
-      }}
-    >
-      <h3 style={{ margin: "10px", marginBottom: "0" }}>Chat</h3>
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "10px",
-          minHeight: "300px",
-          maxHeight: "400px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-        }}
-      >
+    <div className="chat card">
+      <h3 className="card-title">Chat</h3>
+      <div className="chat-messages">
         {messages.map((msg, idx) => (
-          <div key={idx} style={{ fontSize: "14px" }}>
+          <div key={idx} className="chat-message">
             <strong>{msg.user}:</strong> {msg.text}
           </div>
         ))}
       </div>
-      <div style={{ display: "flex", gap: "5px", padding: "10px", borderTop: "1px solid #ccc" }}>
+      <div className="chat-input-row">
         <input
+          className="input"
           type="text"
           value={messageInput}
           onChange={(e) => setMessageInput(e.target.value)}
           onKeyUp={handleKeyPress}
           placeholder="Type a message..."
-          style={{
-            flex: 1,
-            padding: "8px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-            fontSize: "14px",
-          }}
         />
-        <button
-          onClick={handleSendMessage}
-          style={{
-            padding: "8px 12px",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "14px",
-          }}
-        >
+        <button className="btn primary" onClick={handleSendMessage}>
           Send
         </button>
       </div>
