@@ -24,10 +24,10 @@ const Game = ({ lobbyInfo, userName, goToMainMenu, goToLobby, setLobbyData }) =>
   const selectCard = (event) => {
     if (gameState.currentPlayerId !== userName) return;
     const card = event.currentTarget?.dataset?.card || event.target.textContent;
-    const suit = card.slice(-1).toUpperCase();
     if (selectedCards.length > 0) {
-      const firstSuit = selectedCards[0].slice(-1).toUpperCase();
-      if (suit !== firstSuit) return;
+      const selectedCard = selectedCards[0].slice(0, 1).toUpperCase();
+      console.log("Selected card value:", selectedCard, "Clicked card:", card);
+      if (card.slice(0, 1).toUpperCase() !== selectedCard) return;
     }
     let newSelectedCards = [...selectedCards];
     if (selectedCards.includes(card)) newSelectedCards = selectedCards.filter(c => c !== card);
