@@ -5,7 +5,6 @@ export const registerDisconnectSocket = (io, socket) => {
     socket.on("disconnect", () => {
         console.log("Socket disconnected:", socket.id);
         const game = gameStore.getWithPlayer(socket.userName);
-        console.log("Found game on disconnect:", game);
         if (!game) return;
         
         socket.leave(game.id);
